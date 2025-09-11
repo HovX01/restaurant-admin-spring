@@ -1,7 +1,6 @@
 package com.resadmin.res.repository;
 
 import com.resadmin.res.entity.Order;
-import com.resadmin.res.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

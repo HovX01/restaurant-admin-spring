@@ -8,6 +8,7 @@ import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.lang.NonNull;
 
 import jakarta.annotation.PostConstruct;
 import java.util.TimeZone;
@@ -23,14 +24,14 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
+    public void addViewControllers(@NonNull ViewControllerRegistry registry) {
         // Redirect root path to Swagger UI
         registry.addRedirectViewController("/", "/swagger-ui.html");
         registry.addRedirectViewController("/swagger-ui", "/swagger-ui.html");
     }
 
     @Override
-    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+    public void configureAsyncSupport(@NonNull AsyncSupportConfigurer configurer) {
         configurer.setTaskExecutor(taskExecutor());
         configurer.setDefaultTimeout(30000); // 30 seconds timeout
     }

@@ -119,7 +119,6 @@ public class DeliveryService {
         // Validate status transition
         validateStatusTransition(delivery.getStatus(), newStatus);
         
-        Delivery.DeliveryStatus oldStatus = delivery.getStatus();
         delivery.setStatus(newStatus);
         
         // Set delivery timestamp when status changes to DELIVERED
@@ -215,18 +214,25 @@ public class DeliveryService {
     
     private void validateStatusTransition(Delivery.DeliveryStatus currentStatus, Delivery.DeliveryStatus newStatus) {
         switch (currentStatus) {
+            case PENDING:
+                if (newStatus != Delivery.DeliveryStatus.ASSIGNED && newStatus != Delivery.DeliveryStatus.CANCELLED) {
+                    throw new RuntimeException("Invalid status transition from PENDING to " + newStatus);
+                }
+                break;
             case ASSIGNED:
-                if (newStatus != Delivery.DeliveryStatus.OUT_FOR_DELIVERY) {
+                if (newStatus != Delivery.DeliveryStatus.OUT_FOR_DELIVERY && newStatus != Delivery.DeliveryStatus.CANCELLED) {
                     throw new RuntimeException("Invalid status transition from ASSIGNED to " + newStatus);
                 }
                 break;
             case OUT_FOR_DELIVERY:
-                if (newStatus != Delivery.DeliveryStatus.DELIVERED) {
+                if (newStatus != Delivery.DeliveryStatus.DELIVERED && newStatus != Delivery.DeliveryStatus.CANCELLED) {
                     throw new RuntimeException("Invalid status transition from OUT_FOR_DELIVERY to " + newStatus);
                 }
                 break;
             case DELIVERED:
                 throw new RuntimeException("Cannot change status from DELIVERED");
+            case CANCELLED:
+                throw new RuntimeException("Cannot change status from CANCELLED");
         }
     }
 }
