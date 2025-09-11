@@ -10,6 +10,7 @@ import com.resadmin.res.mapper.EntityMapper;
 import com.resadmin.res.repository.OrderItemRepository;
 import com.resadmin.res.repository.OrderRepository;
 import com.resadmin.res.repository.ProductRepository;
+import com.resadmin.res.service.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,9 @@ public class OrderService {
     
     @Autowired
     private ProductRepository productRepository;
+    
+    @Autowired
+    private WebSocketService webSocketService;
     
     public List<Order> getAllOrders() {
         return orderRepository.findAllOrderByCreatedAtDesc();
@@ -89,6 +93,10 @@ public class OrderService {
             orderItemRepository.save(item);
         }
         
+        // Send WebSocket notification for new order
+        webSocketService.notifyOrderCreated(savedOrder);
+        webSocketService.notifyKitchenNewOrder(savedOrder);
+        
         return savedOrder;
     }
     
@@ -100,7 +108,17 @@ public class OrderService {
         validateStatusTransition(order.getStatus(), newStatus);
         
         order.setStatus(newStatus);
-        return orderRepository.save(order);
+        Order updatedOrder = orderRepository.save(order);
+        
+        // Send WebSocket notification for status change
+        webSocketService.notifyOrderStatusChanged(updatedOrder);
+        
+        // Send specific notifications based on status
+        if (newStatus == Order.OrderStatus.READY_FOR_DELIVERY) {
+            webSocketService.notifyDeliveryReadyOrder(updatedOrder);
+        }
+        
+        return updatedOrder;
     }
     
     public Order updateOrder(Long id, Order orderDetails) {
@@ -187,7 +205,8 @@ public class OrderService {
     }
     
     // New paginated methods
-    public Page<Order> getAllOrdersPaginated(Pageable pageable, Order.OrderStatus status, Order.OrderType orderType) {
+    public Page<Order> getAllOrdersPaginated(Pageable pageable, Order.OrderStatus status, Order.OrderType orderType, 
+                                           LocalDateTime from, LocalDateTime to) {
         Specification<Order> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
         
         if (status != null) {
@@ -198,6 +217,16 @@ public class OrderService {
         if (orderType != null) {
             spec = spec.and((root, query, criteriaBuilder) -> 
                 criteriaBuilder.equal(root.get("orderType"), orderType));
+        }
+        
+        if (from != null) {
+            spec = spec.and((root, query, criteriaBuilder) -> 
+                criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), from));
+        }
+        
+        if (to != null) {
+            spec = spec.and((root, query, criteriaBuilder) -> 
+                criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), to));
         }
         
         return orderRepository.findAll(spec, pageable);
@@ -256,6 +285,11 @@ public class OrderService {
          order.setCustomerDetails(orderDetails.getCustomerDetails());
          order.setOrderType(orderDetails.getOrderType());
          
-         return orderRepository.save(order);
+         Order updatedOrder = orderRepository.save(order);
+         
+         // Send WebSocket notification for order update
+         webSocketService.notifyOrderUpdated(updatedOrder);
+         
+         return updatedOrder;
      }
 }

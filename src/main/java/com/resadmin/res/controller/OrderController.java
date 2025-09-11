@@ -59,13 +59,15 @@ public class OrderController {
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
             @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir,
             @Parameter(description = "Filter by order status") @RequestParam(required = false) Order.OrderStatus status,
-            @Parameter(description = "Filter by order type") @RequestParam(required = false) Order.OrderType orderType) {
+            @Parameter(description = "Filter by order type") @RequestParam(required = false) Order.OrderType orderType,
+            @Parameter(description = "Filter from date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @Parameter(description = "Filter to date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         
         Sort sort = sortDir.equalsIgnoreCase("desc") ? 
             Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         
-        Page<Order> orderPage = orderService.getAllOrdersPaginated(pageable, status, orderType);
+        Page<Order> orderPage = orderService.getAllOrdersPaginated(pageable, status, orderType, from, to);
         List<OrderDTO> orderDTOs = EntityMapper.toOrderDTOList(orderPage.getContent());
         PagedResponseDTO<OrderDTO> pagedResponse = EntityMapper.toPagedResponseDTO(orderPage, orderDTOs);
         

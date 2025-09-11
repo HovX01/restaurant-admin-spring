@@ -1,5 +1,9 @@
 package com.resadmin.res.controller;
 
+import com.resadmin.res.dto.request.AssignDeliveryRequestDTO;
+import com.resadmin.res.dto.request.ReassignDriverRequestDTO;
+import com.resadmin.res.dto.request.UpdateDeliveryRequestDTO;
+import com.resadmin.res.dto.request.UpdateDeliveryStatusRequestDTO;
 import com.resadmin.res.entity.Delivery;
 import com.resadmin.res.entity.User;
 import com.resadmin.res.service.DeliveryService;
@@ -87,7 +91,7 @@ public class DeliveryController {
     
     @PostMapping("/assign")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> assignDelivery(@Valid @RequestBody AssignDeliveryRequest assignRequest) {
+    public ResponseEntity<?> assignDelivery(@Valid @RequestBody AssignDeliveryRequestDTO assignRequest) {
         try {
             Delivery delivery = deliveryService.assignDelivery(
                 assignRequest.getOrderId(),
@@ -104,7 +108,7 @@ public class DeliveryController {
     }
     
     @PatchMapping("/{id}/status")
-    public ResponseEntity<?> updateDeliveryStatus(@PathVariable Long id, @RequestBody UpdateDeliveryStatusRequest updateRequest) {
+    public ResponseEntity<?> updateDeliveryStatus(@PathVariable Long id, @Valid @RequestBody UpdateDeliveryStatusRequestDTO updateRequest) {
         try {
             Delivery updatedDelivery = deliveryService.updateDeliveryStatus(id, updateRequest.getStatus());
             Map<String, Object> response = new HashMap<>();
@@ -120,7 +124,7 @@ public class DeliveryController {
     
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> updateDelivery(@PathVariable Long id, @RequestBody UpdateDeliveryRequest updateRequest) {
+    public ResponseEntity<?> updateDelivery(@PathVariable Long id, @Valid @RequestBody UpdateDeliveryRequestDTO updateRequest) {
         try {
             Delivery updatedDelivery = deliveryService.updateDelivery(
                 id,
@@ -137,7 +141,7 @@ public class DeliveryController {
     
     @PatchMapping("/{id}/reassign")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> reassignDriver(@PathVariable Long id, @RequestBody ReassignDriverRequest reassignRequest) {
+    public ResponseEntity<?> reassignDriver(@PathVariable Long id, @Valid @RequestBody ReassignDriverRequestDTO reassignRequest) {
         try {
             Delivery updatedDelivery = deliveryService.reassignDriver(id, reassignRequest.getNewDriverId());
             Map<String, Object> response = new HashMap<>();
@@ -191,48 +195,4 @@ public class DeliveryController {
         return ResponseEntity.ok(stats);
     }
     
-    // Request DTOs
-    public static class AssignDeliveryRequest {
-        private Long orderId;
-        private Long driverId;
-        private String deliveryAddress;
-        private String deliveryNotes;
-        
-        public Long getOrderId() { return orderId; }
-        public void setOrderId(Long orderId) { this.orderId = orderId; }
-        
-        public Long getDriverId() { return driverId; }
-        public void setDriverId(Long driverId) { this.driverId = driverId; }
-        
-        public String getDeliveryAddress() { return deliveryAddress; }
-        public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
-        
-        public String getDeliveryNotes() { return deliveryNotes; }
-        public void setDeliveryNotes(String deliveryNotes) { this.deliveryNotes = deliveryNotes; }
-    }
-    
-    public static class UpdateDeliveryStatusRequest {
-        private Delivery.DeliveryStatus status;
-        
-        public Delivery.DeliveryStatus getStatus() { return status; }
-        public void setStatus(Delivery.DeliveryStatus status) { this.status = status; }
-    }
-    
-    public static class UpdateDeliveryRequest {
-        private String deliveryAddress;
-        private String deliveryNotes;
-        
-        public String getDeliveryAddress() { return deliveryAddress; }
-        public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
-        
-        public String getDeliveryNotes() { return deliveryNotes; }
-        public void setDeliveryNotes(String deliveryNotes) { this.deliveryNotes = deliveryNotes; }
-    }
-    
-    public static class ReassignDriverRequest {
-        private Long newDriverId;
-        
-        public Long getNewDriverId() { return newDriverId; }
-        public void setNewDriverId(Long newDriverId) { this.newDriverId = newDriverId; }
-    }
 }

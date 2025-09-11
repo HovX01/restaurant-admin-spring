@@ -30,6 +30,9 @@ public class DeliveryService {
     @Autowired
     private OrderService orderService;
     
+    @Autowired
+    private WebSocketService webSocketService;
+    
     public List<Delivery> getAllDeliveries() {
         return deliveryRepository.findAll();
     }
@@ -102,6 +105,10 @@ public class DeliveryService {
         // Update order status to OUT_FOR_DELIVERY
         orderService.updateOrderStatus(orderId, Order.OrderStatus.OUT_FOR_DELIVERY);
         
+        // Send WebSocket notifications for delivery assignment
+        webSocketService.notifyDeliveryAssigned(savedDelivery);
+        webSocketService.notifyDeliveryStaffNewAssignment(savedDelivery);
+        
         return savedDelivery;
     }
     
@@ -122,7 +129,12 @@ public class DeliveryService {
             orderService.updateOrderStatus(delivery.getOrder().getId(), Order.OrderStatus.COMPLETED);
         }
         
-        return deliveryRepository.save(delivery);
+        Delivery updatedDelivery = deliveryRepository.save(delivery);
+        
+        // Send WebSocket notification for delivery status change
+        webSocketService.notifyDeliveryStatusChanged(updatedDelivery);
+        
+        return updatedDelivery;
     }
     
     public Delivery updateDelivery(Long id, String deliveryAddress, String deliveryNotes) {
@@ -162,7 +174,13 @@ public class DeliveryService {
         }
         
         delivery.setDriver(newDriver);
-        return deliveryRepository.save(delivery);
+        Delivery updatedDelivery = deliveryRepository.save(delivery);
+        
+        // Send WebSocket notification for driver reassignment
+        webSocketService.notifyDeliveryAssigned(updatedDelivery);
+        webSocketService.notifyDeliveryStaffNewAssignment(updatedDelivery);
+        
+        return updatedDelivery;
     }
     
     public void cancelDelivery(Long deliveryId) {

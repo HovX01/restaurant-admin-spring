@@ -1,11 +1,13 @@
 package com.resadmin.res.controller;
 
 import com.resadmin.res.dto.UserDTO;
+import com.resadmin.res.dto.request.UpdateRoleRequestDTO;
 import com.resadmin.res.dto.response.ApiResponseDTO;
 import com.resadmin.res.dto.response.PagedResponseDTO;
 import com.resadmin.res.mapper.EntityMapper;
 import com.resadmin.res.entity.User;
 import com.resadmin.res.service.AuthService;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -113,7 +115,7 @@ public class UserController {
     
     @PatchMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @RequestBody UpdateRoleRequest updateRoleRequest) {
+    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @Valid @RequestBody UpdateRoleRequestDTO updateRoleRequest) {
         try {
             User updatedUser = authService.updateUserRole(id, updateRoleRequest.getRole());
             Map<String, Object> response = new HashMap<>();
@@ -157,11 +159,4 @@ public class UserController {
         }
     }
     
-    // Request DTOs
-    public static class UpdateRoleRequest {
-        private User.Role role;
-        
-        public User.Role getRole() { return role; }
-        public void setRole(User.Role role) { this.role = role; }
-    }
 }

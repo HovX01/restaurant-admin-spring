@@ -36,11 +36,21 @@ A comprehensive REST API for restaurant management built with Spring Boot, featu
 - Comprehensive error responses
 - Swagger/OpenAPI documentation
 - Database relationship management
+- **Real-time WebSocket Communication**: Live notifications and updates
+
+### WebSocket Features
+- **Real-time Order Notifications**: Instant updates when orders are created or status changes
+- **Kitchen Staff Alerts**: Live notifications for new orders requiring preparation
+- **Delivery Tracking**: Real-time updates for delivery assignments and status changes
+- **Driver Management**: Instant notifications for delivery staff assignments and reassignments
+- **System-wide Broadcasts**: Global notifications for important system events
+- **User-specific Messages**: Targeted notifications based on user roles and permissions
 
 ## Technology Stack
 
 - **Backend**: Spring Boot 3.x
 - **Security**: Spring Security with JWT
+- **Real-time Communication**: Spring WebSocket with STOMP
 - **Database**: PostgreSQL
 - **ORM**: Spring Data JPA with Hibernate
 - **Documentation**: Swagger/OpenAPI 3
@@ -187,6 +197,130 @@ src/main/java/com/resadmin/res/
 | GET | `/api/deliveries` | List deliveries | ADMIN, MANAGER |
 | POST | `/api/deliveries/assign` | Assign delivery | ADMIN, MANAGER |
 | GET | `/api/deliveries/my/**` | My deliveries | ADMIN, MANAGER, DELIVERY_STAFF |
+
+## WebSocket Implementation
+
+### WebSocket Configuration
+
+The system uses Spring WebSocket with STOMP protocol for real-time communication:
+
+- **WebSocket Endpoint**: `/ws`
+- **Message Broker**: Simple in-memory broker
+- **Application Destination Prefix**: `/app`
+- **User Destination Prefix**: `/user`
+- **Topic Prefix**: `/topic`
+
+### WebSocket Endpoints
+
+| Destination | Description | Message Type |
+|-------------|-------------|-------------|
+| `/topic/orders` | Global order notifications | ORDER_CREATED, ORDER_UPDATED |
+| `/topic/deliveries` | Global delivery notifications | DELIVERY_ASSIGNED, DELIVERY_STATUS_CHANGED |
+| `/topic/kitchen` | Kitchen staff notifications | KITCHEN_NEW_ORDER |
+| `/topic/delivery-staff` | Delivery staff notifications | DELIVERY_READY_ORDER, DELIVERY_STAFF_NEW_ASSIGNMENT |
+| `/topic/system` | System-wide alerts | SYSTEM_ALERT |
+| `/user/{userId}/notifications` | User-specific messages | USER_NOTIFICATION |
+
+### Message Handlers
+
+```javascript
+// Connect to WebSocket
+const socket = new SockJS('/ws');
+const stompClient = Stomp.over(socket);
+
+stompClient.connect({}, function(frame) {
+    console.log('Connected: ' + frame);
+    
+    // Subscribe to global order notifications
+    stompClient.subscribe('/topic/orders', function(message) {
+        const notification = JSON.parse(message.body);
+        handleOrderNotification(notification);
+    });
+    
+    // Subscribe to user-specific notifications
+    stompClient.subscribe('/user/notifications', function(message) {
+        const notification = JSON.parse(message.body);
+        handleUserNotification(notification);
+    });
+});
+```
+
+### WebSocket Message Format
+
+```json
+{
+    "type": "ORDER_CREATED",
+    "message": "New order #123 has been created",
+    "data": {
+        "orderId": 123,
+        "status": "PENDING",
+        "customerName": "John Doe",
+        "totalAmount": 25.99
+    },
+    "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Notification Types
+
+- **ORDER_CREATED**: New order placed
+- **ORDER_UPDATED**: Order details modified
+- **ORDER_STATUS_CHANGED**: Order status updated
+- **DELIVERY_ASSIGNED**: Delivery assigned to driver
+- **DELIVERY_STATUS_CHANGED**: Delivery status updated
+- **KITCHEN_NEW_ORDER**: New order for kitchen preparation
+- **DELIVERY_READY_ORDER**: Order ready for delivery
+- **DELIVERY_STAFF_NEW_ASSIGNMENT**: New delivery assignment
+- **SYSTEM_ALERT**: System-wide notifications
+- **USER_NOTIFICATION**: User-specific messages
+
+### Integration with Business Logic
+
+WebSocket notifications are automatically triggered by:
+
+- **Order Service**: Order creation, updates, and status changes
+- **Delivery Service**: Delivery assignments, status updates, and driver reassignments
+- **System Events**: Administrative actions and system alerts
+
+### Client Implementation Example
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+    <script>
+        function connectWebSocket() {
+            const socket = new SockJS('/ws');
+            const stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                // Subscribe to relevant topics based on user role
+                if (userRole === 'KITCHEN_STAFF') {
+                    stompClient.subscribe('/topic/kitchen', handleKitchenNotification);
+                }
+                
+                if (userRole === 'DELIVERY_STAFF') {
+                    stompClient.subscribe('/topic/delivery-staff', handleDeliveryNotification);
+                }
+                
+                // All users can receive system alerts
+                stompClient.subscribe('/topic/system', handleSystemAlert);
+            });
+        }
+        
+        function handleKitchenNotification(message) {
+            const data = JSON.parse(message.body);
+            showNotification('New Order', data.message);
+            updateKitchenDisplay(data.data);
+        }
+    </script>
+</body>
+</html>
+```
 
 ## Database Schema
 
