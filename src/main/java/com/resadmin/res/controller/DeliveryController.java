@@ -4,8 +4,13 @@ import com.resadmin.res.dto.request.AssignDeliveryRequestDTO;
 import com.resadmin.res.dto.request.ReassignDriverRequestDTO;
 import com.resadmin.res.dto.request.UpdateDeliveryRequestDTO;
 import com.resadmin.res.dto.request.UpdateDeliveryStatusRequestDTO;
+import com.resadmin.res.dto.DeliveryDTO;
+import com.resadmin.res.dto.response.ApiResponseDTO;
+import com.resadmin.res.dto.response.StatsResponseDTO;
+import com.resadmin.res.mapper.EntityMapper;
 import com.resadmin.res.entity.Delivery;
 import com.resadmin.res.entity.User;
+import com.resadmin.res.exception.ResourceNotFoundException;
 import com.resadmin.res.service.DeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -36,26 +41,24 @@ public class DeliveryController {
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<?> getDeliveryById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponseDTO<DeliveryDTO>> getDeliveryById(@PathVariable Long id) {
         Optional<Delivery> delivery = deliveryService.getDeliveryById(id);
         if (delivery.isPresent()) {
-            return ResponseEntity.ok(delivery.get());
+            DeliveryDTO deliveryDTO = EntityMapper.toDeliveryDTO(delivery.get());
+            return ResponseEntity.ok(ApiResponseDTO.success("Delivery retrieved successfully", deliveryDTO));
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Delivery not found with id: " + id);
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("Delivery", "id", id);
         }
     }
     
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<?> getDeliveryByOrderId(@PathVariable Long orderId) {
+    public ResponseEntity<ApiResponseDTO<DeliveryDTO>> getDeliveryByOrderId(@PathVariable Long orderId) {
         Optional<Delivery> delivery = deliveryService.getDeliveryByOrderId(orderId);
         if (delivery.isPresent()) {
-            return ResponseEntity.ok(delivery.get());
+            DeliveryDTO deliveryDTO = EntityMapper.toDeliveryDTO(delivery.get());
+            return ResponseEntity.ok(ApiResponseDTO.success("Delivery retrieved successfully", deliveryDTO));
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Delivery not found for order id: " + orderId);
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("Delivery", "orderId", orderId);
         }
     }
     
@@ -91,83 +94,49 @@ public class DeliveryController {
     
     @PostMapping("/assign")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> assignDelivery(@Valid @RequestBody AssignDeliveryRequestDTO assignRequest) {
-        try {
-            Delivery delivery = deliveryService.assignDelivery(
-                assignRequest.getOrderId(),
-                assignRequest.getDriverId(),
-                assignRequest.getDeliveryAddress(),
-                assignRequest.getDeliveryNotes()
-            );
-            return ResponseEntity.ok(delivery);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<DeliveryDTO>> assignDelivery(@Valid @RequestBody AssignDeliveryRequestDTO assignRequest) {
+        Delivery delivery = deliveryService.assignDelivery(
+            assignRequest.getOrderId(),
+            assignRequest.getDriverId(),
+            assignRequest.getDeliveryAddress(),
+            assignRequest.getDeliveryNotes()
+        );
+        DeliveryDTO deliveryDTO = EntityMapper.toDeliveryDTO(delivery);
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery assigned successfully", deliveryDTO));
     }
     
     @PatchMapping("/{id}/status")
-    public ResponseEntity<?> updateDeliveryStatus(@PathVariable Long id, @Valid @RequestBody UpdateDeliveryStatusRequestDTO updateRequest) {
-        try {
-            Delivery updatedDelivery = deliveryService.updateDeliveryStatus(id, updateRequest.getStatus());
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Delivery status updated successfully");
-            response.put("delivery", updatedDelivery);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<DeliveryDTO>> updateDeliveryStatus(@PathVariable Long id, @Valid @RequestBody UpdateDeliveryStatusRequestDTO updateRequest) {
+        Delivery updatedDelivery = deliveryService.updateDeliveryStatus(id, updateRequest.getStatus());
+        DeliveryDTO deliveryDTO = EntityMapper.toDeliveryDTO(updatedDelivery);
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery status updated successfully", deliveryDTO));
     }
     
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> updateDelivery(@PathVariable Long id, @Valid @RequestBody UpdateDeliveryRequestDTO updateRequest) {
-        try {
-            Delivery updatedDelivery = deliveryService.updateDelivery(
-                id,
-                updateRequest.getDeliveryAddress(),
-                updateRequest.getDeliveryNotes()
-            );
-            return ResponseEntity.ok(updatedDelivery);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<DeliveryDTO>> updateDelivery(@PathVariable Long id, @Valid @RequestBody UpdateDeliveryRequestDTO updateRequest) {
+        Delivery updatedDelivery = deliveryService.updateDelivery(
+            id,
+            updateRequest.getDeliveryAddress(),
+            updateRequest.getDeliveryNotes()
+        );
+        DeliveryDTO deliveryDTO = EntityMapper.toDeliveryDTO(updatedDelivery);
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery updated successfully", deliveryDTO));
     }
     
     @PatchMapping("/{id}/reassign")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> reassignDriver(@PathVariable Long id, @Valid @RequestBody ReassignDriverRequestDTO reassignRequest) {
-        try {
-            Delivery updatedDelivery = deliveryService.reassignDriver(id, reassignRequest.getNewDriverId());
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Driver reassigned successfully");
-            response.put("delivery", updatedDelivery);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<DeliveryDTO>> reassignDriver(@PathVariable Long id, @Valid @RequestBody ReassignDriverRequestDTO reassignRequest) {
+        Delivery updatedDelivery = deliveryService.reassignDriver(id, reassignRequest.getNewDriverId());
+        DeliveryDTO deliveryDTO = EntityMapper.toDeliveryDTO(updatedDelivery);
+        return ResponseEntity.ok(ApiResponseDTO.success("Driver reassigned successfully", deliveryDTO));
     }
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> cancelDelivery(@PathVariable Long id) {
-        try {
-            deliveryService.cancelDelivery(id);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Delivery cancelled successfully");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<String>> cancelDelivery(@PathVariable Long id) {
+        deliveryService.cancelDelivery(id);
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery cancelled successfully", null));
     }
     
     @GetMapping("/date-range")
@@ -188,11 +157,12 @@ public class DeliveryController {
     
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<Map<String, Object>> getDeliveryStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("completedCount", deliveryService.getCompletedDeliveryCount());
-        stats.put("activeCount", deliveryService.getActiveDeliveryCount());
-        return ResponseEntity.ok(stats);
+    public ResponseEntity<ApiResponseDTO<StatsResponseDTO>> getDeliveryStats() {
+        StatsResponseDTO stats = StatsResponseDTO.deliveryStats(
+            deliveryService.getCompletedDeliveryCount(),
+            deliveryService.getActiveDeliveryCount()
+        );
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery statistics retrieved successfully", stats));
     }
     
 }

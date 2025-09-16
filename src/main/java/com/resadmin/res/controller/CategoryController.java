@@ -23,10 +23,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
+ 
+import com.resadmin.res.exception.ResourceNotFoundException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -78,15 +77,14 @@ public class CategoryController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
-    public ResponseEntity<?> getCategoryById(
+    public ResponseEntity<ApiResponseDTO<CategoryDTO>> getCategoryById(
             @Parameter(description = "Category ID") @PathVariable Long id) {
         Optional<Category> category = categoryService.getCategoryById(id);
         if (category.isPresent()) {
-            return ResponseEntity.ok(category.get());
+            CategoryDTO categoryDTO = EntityMapper.toCategoryDTO(category.get());
+            return ResponseEntity.ok(ApiResponseDTO.success("Category retrieved successfully", categoryDTO));
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Category not found with id: " + id);
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("Category not found with id: " + id);
         }
     }
     
@@ -100,57 +98,38 @@ public class CategoryController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
-    public ResponseEntity<?> createCategory(
+    public ResponseEntity<ApiResponseDTO<CategoryDTO>> createCategory(
             @Parameter(description = "Category data") @Valid @RequestBody Category category) {
-        try {
-            Category savedCategory = categoryService.createCategory(category);
-            return ResponseEntity.ok(savedCategory);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+        Category savedCategory = categoryService.createCategory(category);
+        CategoryDTO categoryDTO = EntityMapper.toCategoryDTO(savedCategory);
+        return ResponseEntity.ok(ApiResponseDTO.success("Category created successfully", categoryDTO));
     }
     
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> updateCategory(@PathVariable Long id, @Valid @RequestBody Category categoryDetails) {
-        try {
-            Category updatedCategory = categoryService.updateCategory(id, categoryDetails);
-            return ResponseEntity.ok(updatedCategory);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<CategoryDTO>> updateCategory(@PathVariable Long id, @Valid @RequestBody Category categoryDetails) {
+        Category updatedCategory = categoryService.updateCategory(id, categoryDetails);
+        CategoryDTO categoryDTO = EntityMapper.toCategoryDTO(updatedCategory);
+        return ResponseEntity.ok(ApiResponseDTO.success("Category updated successfully", categoryDTO));
     }
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
-        try {
-            categoryService.deleteCategory(id);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Category deleted successfully");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<Void>> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.ok(ApiResponseDTO.success("Category deleted successfully", null));
     }
     
     @GetMapping("/search")
-    public ResponseEntity<List<Category>> searchCategories(@RequestParam String name) {
+    public ResponseEntity<ApiResponseDTO<List<CategoryDTO>>> searchCategories(@RequestParam String name) {
         List<Category> categories = categoryService.searchCategories(name);
-        return ResponseEntity.ok(categories);
+        List<CategoryDTO> categoryDTOs = EntityMapper.toCategoryDTOList(categories);
+        return ResponseEntity.ok(ApiResponseDTO.success("Categories retrieved successfully", categoryDTOs));
     }
     
     @GetMapping("/exists/{name}")
-    public ResponseEntity<Map<String, Boolean>> checkCategoryExists(@PathVariable String name) {
+    public ResponseEntity<ApiResponseDTO<Boolean>> checkCategoryExists(@PathVariable String name) {
         boolean exists = categoryService.existsByName(name);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("exists", exists);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponseDTO.success("Category existence checked", exists));
     }
 }

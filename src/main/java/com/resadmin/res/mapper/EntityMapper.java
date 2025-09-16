@@ -75,6 +75,8 @@ public class EntityMapper {
                 .available(product.getIsAvailable())
                 .category(product.getCategory() != null ? toCategoryDTO(product.getCategory()) : null)
                 .imageUrl(product.getImageUrl())
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
                 .build();
     }
     
@@ -86,6 +88,8 @@ public class EntityMapper {
                 .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
+                .createdAt(category.getCreatedAt())
+                .updatedAt(category.getUpdatedAt())
                 .build();
     }
     
@@ -116,6 +120,8 @@ public class EntityMapper {
                 .fullName(user.getFullName())
                 .role(user.getRole())
                 .enabled(user.getEnabled())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
                 .build();
     }
     

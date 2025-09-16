@@ -24,9 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import com.resadmin.res.exception.ResourceNotFoundException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -72,91 +71,68 @@ public class UserController {
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponseDTO<UserDTO>> getUserById(@PathVariable Long id) {
         Optional<User> user = authService.getUserById(id);
         if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
+            UserDTO userDTO = EntityMapper.toUserDTO(user.get());
+            return ResponseEntity.ok(ApiResponseDTO.success("User retrieved successfully", userDTO));
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "User not found with id: " + id);
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("User not found with id: " + id);
         }
     }
     
     @GetMapping("/username/{username}")
-    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<ApiResponseDTO<UserDTO>> getUserByUsername(@PathVariable String username) {
         Optional<User> user = authService.getUserByUsername(username);
         if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
+            UserDTO userDTO = EntityMapper.toUserDTO(user.get());
+            return ResponseEntity.ok(ApiResponseDTO.success("User retrieved successfully", userDTO));
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "User not found with username: " + username);
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("User not found with username: " + username);
         }
     }
     
     @GetMapping("/role/{role}")
-    public ResponseEntity<List<User>> getUsersByRole(@PathVariable User.Role role) {
+    public ResponseEntity<ApiResponseDTO<List<UserDTO>>> getUsersByRole(@PathVariable User.Role role) {
         List<User> users = authService.getUsersByRole(role);
-        return ResponseEntity.ok(users);
+        List<UserDTO> userDTOs = EntityMapper.toUserDTOList(users);
+        return ResponseEntity.ok(ApiResponseDTO.success("Users retrieved successfully", userDTOs));
     }
     
     @GetMapping("/enabled/{enabled}")
-    public ResponseEntity<List<User>> getUsersByEnabledStatus(@PathVariable Boolean enabled) {
+    public ResponseEntity<ApiResponseDTO<List<UserDTO>>> getUsersByEnabledStatus(@PathVariable Boolean enabled) {
         List<User> users = authService.getUsersByEnabledStatus(enabled);
-        return ResponseEntity.ok(users);
+        List<UserDTO> userDTOs = EntityMapper.toUserDTOList(users);
+        return ResponseEntity.ok(ApiResponseDTO.success("Users retrieved successfully", userDTOs));
     }
     
     @GetMapping("/delivery-staff/available")
-    public ResponseEntity<List<User>> getAvailableDeliveryStaff() {
+    public ResponseEntity<ApiResponseDTO<List<UserDTO>>> getAvailableDeliveryStaff() {
         List<User> users = authService.getAvailableDeliveryStaff();
-        return ResponseEntity.ok(users);
+        List<UserDTO> userDTOs = EntityMapper.toUserDTOList(users);
+        return ResponseEntity.ok(ApiResponseDTO.success("Available delivery staff retrieved successfully", userDTOs));
     }
     
     @PatchMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @Valid @RequestBody UpdateRoleRequestDTO updateRoleRequest) {
-        try {
-            User updatedUser = authService.updateUserRole(id, updateRoleRequest.getRole());
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "User role updated successfully");
-            response.put("user", updatedUser);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<UserDTO>> updateUserRole(@PathVariable Long id, @Valid @RequestBody UpdateRoleRequestDTO updateRoleRequest) {
+        User updatedUser = authService.updateUserRole(id, updateRoleRequest.getRole());
+        UserDTO userDTO = EntityMapper.toUserDTO(updatedUser);
+        return ResponseEntity.ok(ApiResponseDTO.success("User role updated successfully", userDTO));
     }
     
     @PatchMapping("/{id}/toggle-status")
-    public ResponseEntity<?> toggleUserStatus(@PathVariable Long id) {
-        try {
-            User updatedUser = authService.toggleUserStatus(id);
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "User status updated successfully");
-            response.put("user", updatedUser);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<UserDTO>> toggleUserStatus(@PathVariable Long id) {
+        User updatedUser = authService.toggleUserStatus(id);
+        UserDTO userDTO = EntityMapper.toUserDTO(updatedUser);
+        return ResponseEntity.ok(ApiResponseDTO.success("User status updated successfully", userDTO));
     }
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        try {
-            authService.deleteUser(id);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "User deleted successfully");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<Void>> deleteUser(@PathVariable Long id) {
+        authService.deleteUser(id);
+        return ResponseEntity.ok(ApiResponseDTO.success("User deleted successfully", null));
     }
     
 }

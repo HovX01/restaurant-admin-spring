@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -29,4 +30,8 @@ public class UserDTO {
     private User.Role role;
     
     private Boolean enabled;
+    
+    private LocalDateTime createdAt;
+    
+    private LocalDateTime updatedAt;
 }

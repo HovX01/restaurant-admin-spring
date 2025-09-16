@@ -4,6 +4,7 @@ import com.resadmin.res.dto.request.ChangePasswordRequestDTO;
 import com.resadmin.res.dto.request.LoginRequestDTO;
 import com.resadmin.res.dto.request.RegisterRequestDTO;
 import com.resadmin.res.dto.response.ApiResponseDTO;
+import com.resadmin.res.dto.response.TokenResponse;
 import com.resadmin.res.entity.User;
 import com.resadmin.res.dto.UserDTO;
 
@@ -41,23 +42,24 @@ public class AuthController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Login successful",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = Map.class))),
+                schema = @Schema(implementation = TokenResponse.class))),
         @ApiResponse(responseCode = "401", description = "Authentication failed",
                 content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "500", description = "Internal server error",
                 content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<ApiResponseDTO<Map<String, Object>>> login(
+    public ResponseEntity<ApiResponseDTO<TokenResponse>> login(
             @Parameter(description = "Login credentials", required = true)
             @Valid @RequestBody LoginRequestDTO loginRequest) {
         try {
             Map<String, Object> loginResponse = authService.login(loginRequest.getUsername(), loginRequest.getPassword());
             
-            Map<String, Object> responseData = new HashMap<>();
-            responseData.put("token", (String) loginResponse.get("token"));
-            responseData.put("user", (UserDTO) loginResponse.get("user"));
+            TokenResponse tokenResponse = TokenResponse.of(
+                (String) loginResponse.get("token"),
+                (UserDTO) loginResponse.get("user")
+            );
             
-            return ResponseEntity.ok(ApiResponseDTO.success("Login successful", responseData));
+            return ResponseEntity.ok(ApiResponseDTO.success("Login successful", tokenResponse));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponseDTO.error("Authentication failed", "Invalid username or password"));

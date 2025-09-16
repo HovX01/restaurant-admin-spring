@@ -25,9 +25,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
-import java.util.HashMap;
+import com.resadmin.res.exception.ResourceNotFoundException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -76,9 +75,10 @@ public class ProductController {
     }
     
     @GetMapping("/available")
-    public ResponseEntity<List<Product>> getAvailableProducts() {
+    public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getAvailableProducts() {
         List<Product> products = productService.getAvailableProducts();
-        return ResponseEntity.ok(products);
+        List<ProductDTO> productDTOs = EntityMapper.toProductDTOList(products);
+        return ResponseEntity.ok(ApiResponseDTO.success("Available products retrieved successfully", productDTOs));
     }
     
     @GetMapping("/{id}")
@@ -90,28 +90,29 @@ public class ProductController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
-    public ResponseEntity<?> getProductById(
+    public ResponseEntity<ApiResponseDTO<ProductDTO>> getProductById(
             @Parameter(description = "Product ID") @PathVariable Long id) {
         Optional<Product> product = productService.getProductById(id);
         if (product.isPresent()) {
-            return ResponseEntity.ok(product.get());
+            ProductDTO productDTO = EntityMapper.toProductDTO(product.get());
+            return ResponseEntity.ok(ApiResponseDTO.success("Product retrieved successfully", productDTO));
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Product not found with id: " + id);
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("Product not found with id: " + id);
         }
     }
     
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable Long categoryId) {
+    public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getProductsByCategory(@PathVariable Long categoryId) {
         List<Product> products = productService.getProductsByCategory(categoryId);
-        return ResponseEntity.ok(products);
+        List<ProductDTO> productDTOs = EntityMapper.toProductDTOList(products);
+        return ResponseEntity.ok(ApiResponseDTO.success("Products retrieved successfully", productDTOs));
     }
     
     @GetMapping("/category/{categoryId}/available")
-    public ResponseEntity<List<Product>> getAvailableProductsByCategory(@PathVariable Long categoryId) {
+    public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getAvailableProductsByCategory(@PathVariable Long categoryId) {
         List<Product> products = productService.getAvailableProductsByCategory(categoryId);
-        return ResponseEntity.ok(products);
+        List<ProductDTO> productDTOs = EntityMapper.toProductDTOList(products);
+        return ResponseEntity.ok(ApiResponseDTO.success("Available products retrieved successfully", productDTOs));
     }
     
     @PostMapping
@@ -124,81 +125,55 @@ public class ProductController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
-    public ResponseEntity<?> createProduct(
+    public ResponseEntity<ApiResponseDTO<ProductDTO>> createProduct(
             @Parameter(description = "Product data") @Valid @RequestBody Product product) {
-        try {
-            Product savedProduct = productService.createProduct(product);
-            return ResponseEntity.ok(savedProduct);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+        Product savedProduct = productService.createProduct(product);
+        ProductDTO productDTO = EntityMapper.toProductDTO(savedProduct);
+        return ResponseEntity.ok(ApiResponseDTO.success("Product created successfully", productDTO));
     }
     
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> updateProduct(@PathVariable Long id, @Valid @RequestBody Product productDetails) {
-        try {
-            Product updatedProduct = productService.updateProduct(id, productDetails);
-            return ResponseEntity.ok(updatedProduct);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<ProductDTO>> updateProduct(@PathVariable Long id, @Valid @RequestBody Product productDetails) {
+        Product updatedProduct = productService.updateProduct(id, productDetails);
+        ProductDTO productDTO = EntityMapper.toProductDTO(updatedProduct);
+        return ResponseEntity.ok(ApiResponseDTO.success("Product updated successfully", productDTO));
     }
     
     @PatchMapping("/{id}/toggle-availability")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('KITCHEN_STAFF')")
-    public ResponseEntity<?> toggleProductAvailability(@PathVariable Long id) {
-        try {
-            Product updatedProduct = productService.toggleAvailability(id);
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Product availability updated");
-            response.put("product", updatedProduct);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<ProductDTO>> toggleProductAvailability(@PathVariable Long id) {
+        Product updatedProduct = productService.toggleAvailability(id);
+        ProductDTO productDTO = EntityMapper.toProductDTO(updatedProduct);
+        return ResponseEntity.ok(ApiResponseDTO.success("Product availability updated", productDTO));
     }
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
-        try {
-            productService.deleteProduct(id);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Product deleted successfully");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<ApiResponseDTO<Void>> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.ok(ApiResponseDTO.success("Product deleted successfully", null));
     }
     
     @GetMapping("/search")
-    public ResponseEntity<List<Product>> searchProducts(@RequestParam String name) {
+    public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> searchProducts(@RequestParam String name) {
         List<Product> products = productService.searchProducts(name);
-        return ResponseEntity.ok(products);
+        List<ProductDTO> productDTOs = EntityMapper.toProductDTOList(products);
+        return ResponseEntity.ok(ApiResponseDTO.success("Products retrieved successfully", productDTOs));
     }
     
     @GetMapping("/price-range")
-    public ResponseEntity<List<Product>> getProductsByPriceRange(
+    public ResponseEntity<ApiResponseDTO<List<ProductDTO>>> getProductsByPriceRange(
             @RequestParam BigDecimal minPrice,
             @RequestParam BigDecimal maxPrice) {
         List<Product> products = productService.getProductsByPriceRange(minPrice, maxPrice);
-        return ResponseEntity.ok(products);
+        List<ProductDTO> productDTOs = EntityMapper.toProductDTOList(products);
+        return ResponseEntity.ok(ApiResponseDTO.success("Products retrieved successfully", productDTOs));
     }
     
     @GetMapping("/exists/{name}")
-    public ResponseEntity<Map<String, Boolean>> checkProductExists(@PathVariable String name) {
+    public ResponseEntity<ApiResponseDTO<Boolean>> checkProductExists(@PathVariable String name) {
         boolean exists = productService.existsByName(name);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("exists", exists);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponseDTO.success("Product existence checked", exists));
     }
 }

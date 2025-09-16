@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -21,4 +22,8 @@ public class CategoryDTO {
     
     @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
+    
+    private LocalDateTime createdAt;
+    
+    private LocalDateTime updatedAt;
 }

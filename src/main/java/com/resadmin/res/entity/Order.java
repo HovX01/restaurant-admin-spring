@@ -54,7 +54,7 @@ public class Order {
     }
     
     public enum OrderType {
-        DINE_IN, TAKEOUT, DELIVERY
+        DINE_IN, TAKEOUT, DELIVERY, PICKUP
     }
     
     // Constructors

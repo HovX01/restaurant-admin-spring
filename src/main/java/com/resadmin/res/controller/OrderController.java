@@ -3,6 +3,7 @@ package com.resadmin.res.controller;
 import com.resadmin.res.dto.*;
 import com.resadmin.res.dto.request.*;
 import com.resadmin.res.dto.response.*;
+import com.resadmin.res.dto.response.StatsResponseDTO;
 import com.resadmin.res.entity.Order;
 import com.resadmin.res.entity.OrderItem;
 import com.resadmin.res.exception.ResourceNotFoundException;
@@ -28,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -222,10 +224,14 @@ public class OrderController {
     
     @GetMapping("/stats/today")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<ApiResponseDTO<Map<String, Object>>> getTodaysStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("orderCount", orderService.getTodaysOrderCount());
-        stats.put("revenue", orderService.getTodaysRevenue());
+    public ResponseEntity<ApiResponseDTO<StatsResponseDTO>> getTodaysStats() {
+        Double revenueDouble = orderService.getTodaysRevenue();
+        BigDecimal revenue = revenueDouble != null ? BigDecimal.valueOf(revenueDouble) : BigDecimal.ZERO;
+        
+        StatsResponseDTO stats = StatsResponseDTO.orderStats(
+            orderService.getTodaysOrderCount(),
+            revenue
+        );
         return ResponseEntity.ok(ApiResponseDTO.success("Today's statistics retrieved successfully", stats));
     }
 }
