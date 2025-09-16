@@ -38,11 +38,11 @@ INSERT INTO products (name, description, price, image_url, is_available, categor
 
 -- Insert sample users (passwords are 'password123' encoded with BCrypt)
 INSERT INTO users (username, password, email, full_name, role, enabled, created_at, updated_at) VALUES
-('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iYqiSfFVMLkxNNbAb7zUqtS6ssm6', 'admin@resadmin.com', 'System Administrator', 'ADMIN', true, NOW(), NOW()),
-('manager1', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iYqiSfFVMLkxNNbAb7zUqtS6ssm6', 'manager@resadmin.com', 'Restaurant Manager', 'MANAGER', true, NOW(), NOW()),
-('chef1', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iYqiSfFVMLkxNNbAb7zUqtS6ssm6', 'chef@resadmin.com', 'Head Chef', 'KITCHEN_STAFF', true, NOW(), NOW()),
-('driver1', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iYqiSfFVMLkxNNbAb7zUqtS6ssm6', 'driver1@resadmin.com', 'John Delivery', 'DELIVERY_STAFF', true, NOW(), NOW()),
-('driver2', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iYqiSfFVMLkxNNbAb7zUqtS6ssm6', 'driver2@resadmin.com', 'Jane Express', 'DELIVERY_STAFF', true, NOW(), NOW());
+('admin', '$2a$10$h0tJl6dZu72Dc6XPbPqh6esHi72GBo5NndHmTRmjc2IG1WANj6dVu', 'admin@resadmin.com', 'System Administrator', 'ADMIN', true, NOW(), NOW()),
+('manager1', '$2a$10$h0tJl6dZu72Dc6XPbPqh6esHi72GBo5NndHmTRmjc2IG1WANj6dVu', 'manager@resadmin.com', 'Restaurant Manager', 'MANAGER', true, NOW(), NOW()),
+('chef1', '$2a$10$h0tJl6dZu72Dc6XPbPqh6esHi72GBo5NndHmTRmjc2IG1WANj6dVu', 'chef@resadmin.com', 'Head Chef', 'KITCHEN_STAFF', true, NOW(), NOW()),
+('driver1', '$2a$10$h0tJl6dZu72Dc6XPbPqh6esHi72GBo5NndHmTRmjc2IG1WANj6dVu', 'driver1@resadmin.com', 'John Delivery', 'DELIVERY_STAFF', true, NOW(), NOW()),
+('driver2', '$2a$10$h0tJl6dZu72Dc6XPbPqh6esHi72GBo5NndHmTRmjc2IG1WANj6dVu', 'driver2@resadmin.com', 'Jane Express', 'DELIVERY_STAFF', true, NOW(), NOW());
 
 -- Insert sample orders
 INSERT INTO orders (customer_details, order_type, status, total_price, created_at, updated_at) VALUES

@@ -25,7 +25,7 @@ public class User implements UserDetails {
     
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters")
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
     
     @Column(length = 100)
@@ -38,7 +38,7 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
     
-    @Column(name = "is_enabled", nullable = false)
+    @Column(name = "enabled", nullable = false)
     private Boolean enabled = true;
     
     // Enum for roles
