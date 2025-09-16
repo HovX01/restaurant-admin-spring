@@ -100,7 +100,7 @@ src/main/java/com/resadmin/res/
    POST /api/auth/login
    {
      "username": "admin",
-     "password": "password"
+     "password": "password123"
    }
    ```
    

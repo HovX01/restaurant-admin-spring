@@ -5,6 +5,7 @@ import com.resadmin.res.dto.request.LoginRequestDTO;
 import com.resadmin.res.dto.request.RegisterRequestDTO;
 import com.resadmin.res.dto.response.ApiResponseDTO;
 import com.resadmin.res.entity.User;
+import com.resadmin.res.dto.UserDTO;
 
 import com.resadmin.res.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -45,15 +47,15 @@ public class AuthController {
         @ApiResponse(responseCode = "500", description = "Internal server error",
                 content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<ApiResponseDTO<Map<String, String>>> login(
+    public ResponseEntity<ApiResponseDTO<Map<String, Object>>> login(
             @Parameter(description = "Login credentials", required = true)
             @Valid @RequestBody LoginRequestDTO loginRequest) {
         try {
             Map<String, Object> loginResponse = authService.login(loginRequest.getUsername(), loginRequest.getPassword());
             
-            Map<String, String> responseData = new HashMap<>();
+            Map<String, Object> responseData = new HashMap<>();
             responseData.put("token", (String) loginResponse.get("token"));
-            responseData.put("user", loginResponse.get("user").toString());
+            responseData.put("user", (UserDTO) loginResponse.get("user"));
             
             return ResponseEntity.ok(ApiResponseDTO.success("Login successful", responseData));
         } catch (AuthenticationException e) {
@@ -126,5 +128,27 @@ public class AuthController {
         }
     }
     
+    @GetMapping("/info")
+    @Operation(summary = "Get current user info", description = "Get the current authenticated user's complete information")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User information retrieved successfully",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = UserDTO.class))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+                content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "404", description = "User not found",
+                content = @Content(mediaType = "application/json"))
+    })
+    public ResponseEntity<ApiResponseDTO<UserDTO>> getCurrentUserInfo(Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            UserDTO userInfo = authService.getCurrentUserInfo(username);
+            return ResponseEntity.ok(ApiResponseDTO.success("User information retrieved successfully", userInfo));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponseDTO.error(e.getMessage(), "User not found"));
+        }
+    }
 
 }

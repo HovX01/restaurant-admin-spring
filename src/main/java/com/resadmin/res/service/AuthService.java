@@ -3,6 +3,8 @@ package com.resadmin.res.service;
 import com.resadmin.res.entity.User;
 import com.resadmin.res.repository.UserRepository;
 import com.resadmin.res.util.JwtUtil;
+import com.resadmin.res.mapper.EntityMapper;
+import com.resadmin.res.dto.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -48,7 +50,7 @@ public class AuthService {
         
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
-        response.put("user", getUserInfo(user));
+        response.put("user", EntityMapper.toUserDTO(user));
         
         return response;
     }
@@ -140,13 +142,10 @@ public class AuthService {
         return true;
     }
     
-    private Map<String, Object> getUserInfo(User user) {
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("id", user.getId());
-        userInfo.put("username", user.getUsername());
-        userInfo.put("role", user.getRole().name());
-        userInfo.put("enabled", user.getEnabled());
-        return userInfo;
+    public UserDTO getCurrentUserInfo(String username) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        return EntityMapper.toUserDTO(user);
     }
     
     public org.springframework.data.domain.Page<User> getAllUsersWithFilters(

@@ -112,6 +112,7 @@ public class EntityMapper {
         return UserDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
+                .email(user.getEmail())
                 .fullName(user.getFullName())
                 .role(user.getRole())
                 .enabled(user.getEnabled())
