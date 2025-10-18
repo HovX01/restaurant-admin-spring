@@ -125,6 +125,14 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponseDTO.success("Kitchen orders retrieved successfully", orderDTOs));
     }
     
+    @GetMapping("/delivery")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DELIVERY_STAFF')")
+    public ResponseEntity<ApiResponseDTO<List<OrderDTO>>> getDeliveryOrders() {
+        List<Order> orders = orderService.getOrdersReadyForDelivery();
+        List<OrderDTO> orderDTOs = EntityMapper.toOrderDTOList(orders);
+        return ResponseEntity.ok(ApiResponseDTO.success("Delivery orders retrieved successfully", orderDTOs));
+    }
+    
     @GetMapping("/ready-for-delivery")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DELIVERY_STAFF')")
     public ResponseEntity<ApiResponseDTO<List<OrderDTO>>> getOrdersReadyForDelivery() {
