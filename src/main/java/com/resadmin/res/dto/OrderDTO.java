@@ -21,6 +21,14 @@ import java.util.List;
 public class OrderDTO {
     private Long id;
     
+    private String customerName;
+    
+    private String customerPhone;
+    
+    private String customerAddress;
+    
+    private String notes;
+    
     @NotBlank(message = "Customer details are required")
     @Size(max = 500, message = "Customer details must not exceed 500 characters")
     private String customerDetails;
