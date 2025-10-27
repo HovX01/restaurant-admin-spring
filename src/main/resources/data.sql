@@ -46,9 +46,9 @@ INSERT INTO users (username, password, email, full_name, role, enabled, created_
 
 -- Insert sample orders
 INSERT INTO orders (customer_details, order_type, status, total_price, created_at, updated_at) VALUES
-('John Doe, 555-1234, john@email.com', 'DELIVERY', 'PENDING', 45.97, NOW(), NOW()),
-('Jane Smith, 555-5678, jane@email.com', 'PICKUP', 'CONFIRMED', 28.98, NOW(), NOW()),
-('Bob Johnson, 555-9012, bob@email.com', 'DELIVERY', 'PREPARING', 52.96, NOW(), NOW());
+('Name: John Doe | Phone: 555-1234 | Address: 123 Main Street, Apt 4B | Notes: Please ring doorbell', 'DELIVERY', 'PENDING', 45.97, NOW(), NOW()),
+('Name: Jane Smith | Phone: 555-5678', 'PICKUP', 'CONFIRMED', 28.98, NOW(), NOW()),
+('Name: Bob Johnson | Phone: 555-9012 | Address: 456 Oak Avenue | Notes: Leave at front desk', 'DELIVERY', 'PREPARING', 52.96, NOW(), NOW());
 
 -- Insert sample order items
 INSERT INTO order_items (order_id, product_id, quantity, price, created_at, updated_at) VALUES

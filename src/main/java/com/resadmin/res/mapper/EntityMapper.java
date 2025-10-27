@@ -16,9 +16,19 @@ public class EntityMapper {
     public static OrderDTO toOrderDTO(Order order) {
         if (order == null) return null;
         
+        String customerDetails = order.getCustomerDetails();
+        String customerName = extractCustomerField(customerDetails, "Name");
+        String customerPhone = extractCustomerField(customerDetails, "Phone");
+        String customerAddress = extractCustomerField(customerDetails, "Address");
+        String notes = extractCustomerField(customerDetails, "Notes");
+        
         return OrderDTO.builder()
                 .id(order.getId())
-                .customerDetails(order.getCustomerDetails())
+                .customerName(customerName)
+                .customerPhone(customerPhone)
+                .customerAddress(customerAddress)
+                .notes(notes)
+                .customerDetails(customerDetails)
                 .status(order.getStatus())
                 .totalPrice(order.getTotalPrice())
                 .orderType(order.getOrderType())
@@ -27,6 +37,46 @@ public class EntityMapper {
                     order.getOrderItems().stream().map(EntityMapper::toOrderItemDTO).collect(Collectors.toList()) : null)
                 .delivery(order.getDelivery() != null ? toDeliveryDTO(order.getDelivery()) : null)
                 .build();
+    }
+    
+    private static String extractCustomerField(String customerDetails, String fieldName) {
+        if (customerDetails == null || customerDetails.isEmpty()) {
+            return null;
+        }
+        
+        // Check if it's in the new format (with labels like "Name: ")
+        String pattern = fieldName + ": ";
+        int startIndex = customerDetails.indexOf(pattern);
+        if (startIndex == -1) {
+            // Legacy format fallback: handle old comma-separated format
+            return handleLegacyFormat(customerDetails, fieldName);
+        }
+        
+        startIndex += pattern.length();
+        int endIndex = customerDetails.indexOf(" | ", startIndex);
+        
+        if (endIndex == -1) {
+            return customerDetails.substring(startIndex).trim();
+        }
+        
+        return customerDetails.substring(startIndex, endIndex).trim();
+    }
+    
+    private static String handleLegacyFormat(String customerDetails, String fieldName) {
+        // Legacy format: "John Doe, 555-1234, john@email.com"
+        // Only extract name and phone from this format
+        if (!customerDetails.contains(",")) {
+            return null;
+        }
+        
+        String[] parts = customerDetails.split(",");
+        if (fieldName.equals("Name") && parts.length > 0) {
+            return parts[0].trim();
+        } else if (fieldName.equals("Phone") && parts.length > 1) {
+            return parts[1].trim();
+        }
+        
+        return null;
     }
     
     public static Order toOrderEntity(CreateOrderRequestDTO dto) {
