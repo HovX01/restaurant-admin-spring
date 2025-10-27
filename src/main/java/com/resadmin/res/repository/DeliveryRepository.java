@@ -3,6 +3,8 @@ package com.resadmin.res.repository;
 import com.resadmin.res.entity.Delivery;
 import com.resadmin.res.entity.Order;
 import com.resadmin.res.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +24,8 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     List<Delivery> findByDriver(User driver);
     
     List<Delivery> findByDriverId(Long driverId);
+    
+    Page<Delivery> findByDriverId(Long driverId, Pageable pageable);
     
     List<Delivery> findByStatus(Delivery.DeliveryStatus status);
     
