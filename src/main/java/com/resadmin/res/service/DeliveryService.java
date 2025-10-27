@@ -7,6 +7,8 @@ import com.resadmin.res.repository.DeliveryRepository;
 import com.resadmin.res.repository.OrderRepository;
 import com.resadmin.res.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,10 @@ public class DeliveryService {
     
     public List<Delivery> getDeliveriesByDriver(Long driverId) {
         return deliveryRepository.findByDriverId(driverId);
+    }
+    
+    public Page<Delivery> getDeliveriesByDriverPaginated(Long driverId, Pageable pageable) {
+        return deliveryRepository.findByDriverId(driverId, pageable);
     }
     
     public List<Delivery> getDeliveriesByStatus(Delivery.DeliveryStatus status) {

@@ -6,6 +6,7 @@ import com.resadmin.res.dto.request.UpdateDeliveryRequestDTO;
 import com.resadmin.res.dto.request.UpdateDeliveryStatusRequestDTO;
 import com.resadmin.res.dto.DeliveryDTO;
 import com.resadmin.res.dto.response.ApiResponseDTO;
+import com.resadmin.res.dto.response.PagedResponseDTO;
 import com.resadmin.res.dto.response.StatsResponseDTO;
 import com.resadmin.res.mapper.EntityMapper;
 import com.resadmin.res.entity.Delivery;
@@ -13,9 +14,14 @@ import com.resadmin.res.entity.User;
 import com.resadmin.res.exception.ResourceNotFoundException;
 import com.resadmin.res.service.DeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -38,6 +44,27 @@ public class DeliveryController {
     public ResponseEntity<List<Delivery>> getAllDeliveries() {
         List<Delivery> deliveries = deliveryService.getAllDeliveries();
         return ResponseEntity.ok(deliveries);
+    }
+    
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponseDTO<PagedResponseDTO<DeliveryDTO>>> getMyDeliveries(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "dispatchedAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        
+        User currentUser = (User) authentication.getPrincipal();
+        
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        Page<Delivery> deliveryPage = deliveryService.getDeliveriesByDriverPaginated(currentUser.getId(), pageable);
+        List<DeliveryDTO> deliveryDTOs = EntityMapper.toDeliveryDTOList(deliveryPage.getContent());
+        PagedResponseDTO<DeliveryDTO> pagedResponse = EntityMapper.toPagedResponseDTO(deliveryPage, deliveryDTOs);
+        
+        return ResponseEntity.ok(ApiResponseDTO.success("My deliveries retrieved successfully", pagedResponse));
     }
     
     @GetMapping("/{id}")
