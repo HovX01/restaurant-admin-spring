@@ -5,6 +5,7 @@ import com.resadmin.res.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -67,6 +68,7 @@ public class SecurityConfig {
                 
                 // Manager and Admin endpoints
                 .requestMatchers("/api/categories/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers(HttpMethod.GET, "/api/products/**").hasAnyRole("ADMIN", "MANAGER", "KITCHEN_STAFF")
                 .requestMatchers("/api/products/**").hasAnyRole("ADMIN", "MANAGER")
                 
                 // Order endpoints - more specific patterns first
