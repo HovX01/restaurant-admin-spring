@@ -68,17 +68,17 @@ public class SecurityConfig {
                 // Manager and Admin endpoints
                 .requestMatchers("/api/categories/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/products/**").hasAnyRole("ADMIN", "MANAGER")
+                
+                // Order endpoints - more specific patterns first
                 .requestMatchers("/api/orders/create").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/orders/*/status").hasAnyRole("ADMIN", "MANAGER", "KITCHEN_STAFF")
-                .requestMatchers("/api/orders/**").hasAnyRole("ADMIN", "MANAGER", "KITCHEN_STAFF")
+                .requestMatchers("/api/orders/kitchen/**").hasAnyRole("ADMIN", "MANAGER", "KITCHEN_STAFF")
+                .requestMatchers("/api/orders/*/status").hasAnyRole("ADMIN", "MANAGER", "KITCHEN_STAFF", "DELIVERY_STAFF")
+                .requestMatchers("/api/orders/**").hasAnyRole("ADMIN", "MANAGER", "KITCHEN_STAFF", "DELIVERY_STAFF")
+                
+                // Delivery endpoints - more specific patterns first
                 .requestMatchers("/api/deliveries/assign").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/deliveries/**").hasAnyRole("ADMIN", "MANAGER", "DELIVERY_STAFF")
-                
-                // Kitchen staff endpoints
-                .requestMatchers("/api/orders/kitchen/**").hasAnyRole("ADMIN", "MANAGER", "KITCHEN_STAFF")
-                
-                // Delivery staff endpoints
-                .requestMatchers("/api/deliveries/my/**").hasAnyRole("ADMIN", "MANAGER", "DELIVERY_STAFF")
+                .requestMatchers("/api/delivery-drivers/**").hasAnyRole("ADMIN", "MANAGER", "DELIVERY_STAFF")
                 
                 // Allow all other non-API requests
                 .anyRequest().permitAll()
