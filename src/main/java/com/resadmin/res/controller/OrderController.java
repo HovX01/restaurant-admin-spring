@@ -241,4 +241,86 @@ public class OrderController {
         );
         return ResponseEntity.ok(ApiResponseDTO.success("Today's statistics retrieved successfully", stats));
     }
+    
+    @PatchMapping("/{id}/payment")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Update payment status", description = "Update the payment status and method of an order")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Payment status updated successfully",
+                content = @Content(schema = @Schema(implementation = ApiResponseDTO.class))),
+        @ApiResponse(responseCode = "404", description = "Order not found"),
+        @ApiResponse(responseCode = "400", description = "Invalid payment data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<ApiResponseDTO<OrderDTO>> updatePaymentStatus(
+            @Parameter(description = "Order ID") @PathVariable Long id,
+            @Parameter(description = "Payment update request") @Valid @RequestBody com.resadmin.res.dto.request.UpdatePaymentRequestDTO updatePaymentRequest) {
+        Order updatedOrder = orderService.updatePaymentStatus(id, updatePaymentRequest.getIsPaid(), updatePaymentRequest.getPaymentMethod());
+        OrderDTO orderDTO = EntityMapper.toOrderDTO(updatedOrder);
+        return ResponseEntity.ok(ApiResponseDTO.success("Payment status updated successfully", orderDTO));
+    }
+    
+    @PostMapping("/{id}/mark-paid")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Mark order as paid", description = "Mark an order as paid with payment method")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Order marked as paid successfully",
+                content = @Content(schema = @Schema(implementation = ApiResponseDTO.class))),
+        @ApiResponse(responseCode = "404", description = "Order not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<ApiResponseDTO<OrderDTO>> markOrderAsPaid(
+            @Parameter(description = "Order ID") @PathVariable Long id,
+            @Parameter(description = "Payment method") @RequestParam(required = false) Order.PaymentMethod paymentMethod) {
+        Order updatedOrder = orderService.markOrderAsPaid(id, paymentMethod);
+        OrderDTO orderDTO = EntityMapper.toOrderDTO(updatedOrder);
+        return ResponseEntity.ok(ApiResponseDTO.success("Order marked as paid successfully", orderDTO));
+    }
+    
+    @PostMapping("/{id}/mark-unpaid")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Mark order as unpaid", description = "Mark an order as unpaid")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Order marked as unpaid successfully",
+                content = @Content(schema = @Schema(implementation = ApiResponseDTO.class))),
+        @ApiResponse(responseCode = "404", description = "Order not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<ApiResponseDTO<OrderDTO>> markOrderAsUnpaid(
+            @Parameter(description = "Order ID") @PathVariable Long id) {
+        Order updatedOrder = orderService.markOrderAsUnpaid(id);
+        OrderDTO orderDTO = EntityMapper.toOrderDTO(updatedOrder);
+        return ResponseEntity.ok(ApiResponseDTO.success("Order marked as unpaid successfully", orderDTO));
+    }
+    
+    @GetMapping("/paid")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Get paid orders", description = "Retrieve all paid orders")
+    public ResponseEntity<ApiResponseDTO<List<OrderDTO>>> getPaidOrders() {
+        List<Order> orders = orderService.getPaidOrders();
+        List<OrderDTO> orderDTOs = EntityMapper.toOrderDTOList(orders);
+        return ResponseEntity.ok(ApiResponseDTO.success("Paid orders retrieved successfully", orderDTOs));
+    }
+    
+    @GetMapping("/unpaid")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Get unpaid orders", description = "Retrieve all unpaid orders")
+    public ResponseEntity<ApiResponseDTO<List<OrderDTO>>> getUnpaidOrders() {
+        List<Order> orders = orderService.getUnpaidOrders();
+        List<OrderDTO> orderDTOs = EntityMapper.toOrderDTOList(orders);
+        return ResponseEntity.ok(ApiResponseDTO.success("Unpaid orders retrieved successfully", orderDTOs));
+    }
+    
+    @GetMapping("/payment-method/{paymentMethod}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Get orders by payment method", description = "Retrieve all orders with a specific payment method")
+    public ResponseEntity<ApiResponseDTO<List<OrderDTO>>> getOrdersByPaymentMethod(
+            @Parameter(description = "Payment method") @PathVariable Order.PaymentMethod paymentMethod) {
+        List<Order> orders = orderService.getOrdersByPaymentMethod(paymentMethod);
+        List<OrderDTO> orderDTOs = EntityMapper.toOrderDTOList(orders);
+        return ResponseEntity.ok(ApiResponseDTO.success("Orders retrieved successfully", orderDTOs));
+    }
 }
