@@ -233,8 +233,7 @@ public class OrderController {
     @GetMapping("/stats/today")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<ApiResponseDTO<StatsResponseDTO>> getTodaysStats() {
-        Double revenueDouble = orderService.getTodaysRevenue();
-        BigDecimal revenue = revenueDouble != null ? BigDecimal.valueOf(revenueDouble) : BigDecimal.ZERO;
+        BigDecimal revenue = orderService.getTodaysRevenue();
         
         StatsResponseDTO stats = StatsResponseDTO.orderStats(
             orderService.getTodaysOrderCount(),

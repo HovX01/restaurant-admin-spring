@@ -151,9 +151,9 @@ public class OrderService {
         return orderRepository.countTodaysOrders();
     }
     
-    public Double getTodaysRevenue() {
+    public BigDecimal getTodaysRevenue() {
         BigDecimal revenue = orderRepository.getTodaysRevenue();
-        return revenue != null ? revenue.doubleValue() : 0.0;
+        return revenue != null ? revenue : BigDecimal.ZERO;
     }
     
     public List<OrderItem> getOrderItems(Long orderId) {
