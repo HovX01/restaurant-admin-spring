@@ -280,15 +280,52 @@ public class OrderService {
      public Order updateOrderFromDTO(Long id, CreateOrderRequestDTO orderDetails) {
          Order order = orderRepository.findById(id)
              .orElseThrow(() -> new ResourceNotFoundException("Order", "id", id));
-         
+
          order.setCustomerDetails(orderDetails.getCustomerDetails());
          order.setOrderType(orderDetails.getOrderType());
-         
+
          Order updatedOrder = orderRepository.save(order);
-         
+
          // Send WebSocket notification for order update
          webSocketService.notifyOrderUpdated(updatedOrder);
-         
+
          return updatedOrder;
+     }
+
+     public Order updatePaymentStatus(Long orderId, Boolean isPaid, Order.PaymentMethod paymentMethod) {
+         Order order = orderRepository.findById(orderId)
+             .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
+
+         order.setIsPaid(isPaid);
+         if (paymentMethod != null) {
+             order.setPaymentMethod(paymentMethod);
+         }
+
+         Order updatedOrder = orderRepository.save(order);
+
+         // Send WebSocket notification for payment status change
+         webSocketService.notifyOrderUpdated(updatedOrder);
+
+         return updatedOrder;
+     }
+
+     public Order markOrderAsPaid(Long orderId, Order.PaymentMethod paymentMethod) {
+         return updatePaymentStatus(orderId, true, paymentMethod);
+     }
+
+     public Order markOrderAsUnpaid(Long orderId) {
+         return updatePaymentStatus(orderId, false, null);
+     }
+
+     public List<Order> getPaidOrders() {
+         return orderRepository.findByIsPaid(true);
+     }
+
+     public List<Order> getUnpaidOrders() {
+         return orderRepository.findByIsPaid(false);
+     }
+
+     public List<Order> getOrdersByPaymentMethod(Order.PaymentMethod paymentMethod) {
+         return orderRepository.findByPaymentMethod(paymentMethod);
      }
 }

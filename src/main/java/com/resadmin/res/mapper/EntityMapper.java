@@ -32,6 +32,8 @@ public class EntityMapper {
                 .status(order.getStatus())
                 .totalPrice(order.getTotalPrice())
                 .orderType(order.getOrderType())
+                .isPaid(order.getIsPaid())
+                .paymentMethod(order.getPaymentMethod())
                 .createdAt(order.getCreatedAt())
                 .orderItems(order.getOrderItems() != null ? 
                     order.getOrderItems().stream().map(EntityMapper::toOrderItemDTO).collect(Collectors.toList()) : null)
@@ -86,6 +88,8 @@ public class EntityMapper {
         order.setCustomerDetails(dto.getCustomerDetails());
         order.setTotalPrice(dto.getTotalPrice());
         order.setOrderType(dto.getOrderType());
+        order.setPaymentMethod(dto.getPaymentMethod());
+        order.setIsPaid(false);
         return order;
     }
     

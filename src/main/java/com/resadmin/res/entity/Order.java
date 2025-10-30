@@ -38,6 +38,13 @@ public class Order {
     @Column(name = "order_type", nullable = false)
     private OrderType orderType;
     
+    @Column(name = "is_paid", nullable = false)
+    private Boolean isPaid = false;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method")
+    private PaymentMethod paymentMethod;
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -55,6 +62,10 @@ public class Order {
     
     public enum OrderType {
         DINE_IN, TAKEOUT, DELIVERY, PICKUP
+    }
+    
+    public enum PaymentMethod {
+        CASH_ON_DELIVERY, BANK, CARD
     }
     
     // Constructors
@@ -143,6 +154,22 @@ public class Order {
         this.delivery = delivery;
     }
     
+    public Boolean getIsPaid() {
+        return isPaid;
+    }
+    
+    public void setIsPaid(Boolean isPaid) {
+        this.isPaid = isPaid;
+    }
+    
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+    
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+    
     @Override
     public String toString() {
         return "Order{" +
@@ -151,6 +178,8 @@ public class Order {
                 ", status=" + status +
                 ", totalPrice=" + totalPrice +
                 ", orderType=" + orderType +
+                ", isPaid=" + isPaid +
+                ", paymentMethod=" + paymentMethod +
                 ", createdAt=" + createdAt +
                 '}';
     }

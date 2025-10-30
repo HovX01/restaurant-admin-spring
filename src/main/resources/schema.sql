@@ -49,6 +49,8 @@ CREATE TABLE orders (
     order_type VARCHAR(20) NOT NULL CHECK (order_type IN ('DELIVERY', 'PICKUP')),
     status VARCHAR(30) NOT NULL CHECK (status IN ('PENDING', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'READY_FOR_DELIVERY', 'OUT_FOR_DELIVERY', 'COMPLETED', 'CANCELLED')),
     total_price DECIMAL(10,2) NOT NULL CHECK (total_price >= 0),
+    is_paid BOOLEAN DEFAULT false NOT NULL,
+    payment_method VARCHAR(20) CHECK (payment_method IN ('CASH_ON_DELIVERY', 'BANK', 'CARD')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -88,6 +90,8 @@ CREATE INDEX idx_products_name ON products(name);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orders_order_type ON orders(order_type);
 CREATE INDEX idx_orders_created_at ON orders(created_at);
+CREATE INDEX idx_orders_is_paid ON orders(is_paid);
+CREATE INDEX idx_orders_payment_method ON orders(payment_method);
 
 CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX idx_order_items_product_id ON order_items(product_id);

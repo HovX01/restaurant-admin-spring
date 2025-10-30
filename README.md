@@ -19,7 +19,8 @@ A comprehensive REST API for restaurant management built with Spring Boot, featu
 ### Core Functionality
 - **User Management**: Complete user lifecycle with role-based permissions
 - **Product Management**: Categories and products with filtering capabilities
-- **Order Management**: Order creation, status tracking, and kitchen workflow
+- **Order Management**: Order creation, status tracking, payment management, and kitchen workflow
+- **Payment Management**: Track payment status and payment methods (Cash on Delivery, Bank, Card)
 - **Delivery Management**: Delivery assignment and tracking
 - **Authentication**: JWT-based authentication with role-based access control
 
@@ -186,8 +187,14 @@ src/main/java/com/resadmin/res/
 | Method | Endpoint | Description | Required Role |
 |--------|----------|-------------|---------------|
 | GET | `/api/orders` | List orders | ADMIN, MANAGER, KITCHEN_STAFF |
-| POST | `/api/orders/create` | Create order | ADMIN, MANAGER |
+| POST | `/api/orders` | Create order | ADMIN, MANAGER |
 | PUT | `/api/orders/{id}/status` | Update order status | ADMIN, MANAGER, KITCHEN_STAFF |
+| PATCH | `/api/orders/{id}/payment` | Update payment status | ADMIN, MANAGER |
+| POST | `/api/orders/{id}/mark-paid` | Mark order as paid | ADMIN, MANAGER |
+| POST | `/api/orders/{id}/mark-unpaid` | Mark order as unpaid | ADMIN, MANAGER |
+| GET | `/api/orders/paid` | Get paid orders | ADMIN, MANAGER |
+| GET | `/api/orders/unpaid` | Get unpaid orders | ADMIN, MANAGER |
+| GET | `/api/orders/payment-method/{method}` | Get orders by payment method | ADMIN, MANAGER |
 | GET | `/api/orders/kitchen/**` | Kitchen operations | ADMIN, MANAGER, KITCHEN_STAFF |
 
 ### Delivery Management
@@ -197,6 +204,92 @@ src/main/java/com/resadmin/res/
 | GET | `/api/deliveries` | List deliveries | ADMIN, MANAGER |
 | POST | `/api/deliveries/assign` | Assign delivery | ADMIN, MANAGER |
 | GET | `/api/deliveries/my/**` | My deliveries | ADMIN, MANAGER, DELIVERY_STAFF |
+
+## Payment Management
+
+### Payment Features
+
+The system supports comprehensive payment tracking for orders:
+
+- **Payment Status**: Track whether an order has been paid or not
+- **Payment Methods**: Support for multiple payment methods
+  - **CASH_ON_DELIVERY**: Payment upon delivery
+  - **BANK**: Bank transfer or online banking
+  - **CARD**: Credit/debit card payment
+
+### Payment Operations
+
+#### Creating an Order with Payment Method
+
+```bash
+curl -X POST http://localhost:8080/api/orders \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerName": "John Doe",
+    "customerPhone": "555-1234",
+    "customerAddress": "123 Main St",
+    "paymentMethod": "CARD",
+    "totalAmount": 25.99,
+    "items": [
+      {
+        "productId": 1,
+        "quantity": 2,
+        "price": 12.99
+      }
+    ]
+  }'
+```
+
+#### Marking an Order as Paid
+
+```bash
+# Simple mark as paid
+curl -X POST http://localhost:8080/api/orders/1/mark-paid?paymentMethod=CASH_ON_DELIVERY \
+  -H "Authorization: Bearer <token>"
+
+# Update payment status with details
+curl -X PATCH http://localhost:8080/api/orders/1/payment \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "isPaid": true,
+    "paymentMethod": "BANK"
+  }'
+```
+
+#### Retrieving Orders by Payment Status
+
+```bash
+# Get all paid orders
+curl -X GET http://localhost:8080/api/orders/paid \
+  -H "Authorization: Bearer <token>"
+
+# Get all unpaid orders
+curl -X GET http://localhost:8080/api/orders/unpaid \
+  -H "Authorization: Bearer <token>"
+
+# Get orders by payment method
+curl -X GET http://localhost:8080/api/orders/payment-method/CARD \
+  -H "Authorization: Bearer <token>"
+```
+
+### Payment Status in Order Response
+
+All order responses now include payment information:
+
+```json
+{
+  "id": 1,
+  "customerName": "John Doe",
+  "status": "CONFIRMED",
+  "totalPrice": 25.99,
+  "isPaid": true,
+  "paymentMethod": "CARD",
+  "orderItems": [...],
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
 
 ## WebSocket Implementation
 
@@ -329,8 +422,19 @@ WebSocket notifications are automatically triggered by:
 - **User**: Authentication and role management
 - **Category**: Product categorization
 - **Product**: Menu items with category relationships
-- **Order**: Customer orders with status tracking
+- **Order**: Customer orders with status tracking, payment status, and payment method
 - **Delivery**: Delivery assignments and tracking
+
+### Order Entity Fields
+
+- `id`: Primary key
+- `customer_details`: Customer information
+- `order_type`: DINE_IN, TAKEOUT, DELIVERY, PICKUP
+- `status`: Order status (PENDING, CONFIRMED, PREPARING, etc.)
+- `total_price`: Order total amount
+- `is_paid`: Payment status (true/false)
+- `payment_method`: CASH_ON_DELIVERY, BANK, CARD
+- `created_at`: Order creation timestamp
 
 ### Key Relationships
 
