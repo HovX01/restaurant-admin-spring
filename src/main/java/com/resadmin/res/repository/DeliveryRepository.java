@@ -35,10 +35,10 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     @Query("SELECT d FROM Delivery d WHERE d.status = 'PENDING' ORDER BY d.dispatchedAt ASC")
     List<Delivery> findPendingDeliveries();
     
-    @Query("SELECT d FROM Delivery d WHERE d.status = 'OUT_FOR_DELIVERY' ORDER BY d.dispatchedAt ASC")
+    @Query("SELECT d FROM Delivery d WHERE d.status IN ('ASSIGNED', 'OUT_FOR_DELIVERY') ORDER BY d.dispatchedAt ASC")
     List<Delivery> findActiveDeliveries();
     
-    @Query("SELECT d FROM Delivery d WHERE d.driver.id = :driverId AND d.status = 'OUT_FOR_DELIVERY'")
+    @Query("SELECT d FROM Delivery d WHERE d.driver.id = :driverId AND d.status IN ('ASSIGNED', 'OUT_FOR_DELIVERY')")
     List<Delivery> findActiveDeliveriesByDriver(@Param("driverId") Long driverId);
     
     @Query("SELECT d FROM Delivery d WHERE CAST(d.dispatchedAt AS date) = CURRENT_DATE")
@@ -53,12 +53,12 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     @Query("SELECT d FROM Delivery d WHERE d.status IN :statuses ORDER BY d.dispatchedAt DESC")
     List<Delivery> findByStatusInOrderByDispatchedAtDesc(@Param("statuses") List<Delivery.DeliveryStatus> statuses);
     
-    @Query("SELECT COUNT(d) FROM Delivery d WHERE d.driver.id = :driverId AND d.status = 'OUT_FOR_DELIVERY'")
+    @Query("SELECT COUNT(d) FROM Delivery d WHERE d.driver.id = :driverId AND d.status IN ('ASSIGNED', 'OUT_FOR_DELIVERY')")
     Long countActiveDeliveriesByDriver(@Param("driverId") Long driverId);
     
     @Query("SELECT COUNT(d) FROM Delivery d WHERE d.status = 'DELIVERED'")
     long countCompletedDeliveries();
     
-    @Query("SELECT COUNT(d) FROM Delivery d WHERE d.status IN ('ASSIGNED', 'PICKED_UP', 'IN_TRANSIT')")
+    @Query("SELECT COUNT(d) FROM Delivery d WHERE d.status IN ('ASSIGNED', 'OUT_FOR_DELIVERY')")
     long countActiveDeliveries();
 }
