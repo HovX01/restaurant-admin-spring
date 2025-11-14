@@ -42,6 +42,8 @@ public class CreateOrderRequestDTO {
     
     private Order.OrderType orderType;
     
+    private Order.PaymentMethod paymentMethod;
+    
     @NotEmpty(message = "Order items are required")
     @Valid
     @JsonAlias({"orderItems"})

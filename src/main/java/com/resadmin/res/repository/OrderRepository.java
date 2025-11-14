@@ -53,4 +53,11 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     
     @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
     List<Order> findAllOrderByCreatedAtDesc();
+    
+    List<Order> findByIsPaid(Boolean isPaid);
+    
+    List<Order> findByPaymentMethod(Order.PaymentMethod paymentMethod);
+    
+    @Query("SELECT o FROM Order o WHERE o.isPaid = :isPaid AND o.status = :status")
+    List<Order> findByIsPaidAndStatus(@Param("isPaid") Boolean isPaid, @Param("status") Order.OrderStatus status);
 }

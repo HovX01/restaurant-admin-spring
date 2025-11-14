@@ -42,6 +42,10 @@ public class OrderDTO {
     @NotNull(message = "Order type is required")
     private Order.OrderType orderType;
     
+    private Boolean isPaid;
+    
+    private Order.PaymentMethod paymentMethod;
+    
     private LocalDateTime createdAt;
     
     private List<OrderItemDTO> orderItems;
