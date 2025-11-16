@@ -156,6 +156,8 @@ public class EntityMapper {
                 .deliveredAt(delivery.getDeliveredAt())
                 .deliveryAddress(delivery.getDeliveryAddress())
                 .deliveryNotes(delivery.getDeliveryNotes())
+                .latitude(delivery.getLatitude())
+                .longitude(delivery.getLongitude())
                 .build();
     }
     

@@ -32,6 +32,10 @@ public class CreateOrderRequestDTO {
     @Size(max = 200, message = "Customer address must not exceed 200 characters")
     private String customerAddress;
     
+    private Double latitude;
+    
+    private Double longitude;
+    
     @Size(max = 500, message = "Notes must not exceed 500 characters")
     private String notes;
     

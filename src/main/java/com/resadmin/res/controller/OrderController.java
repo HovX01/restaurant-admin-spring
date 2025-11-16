@@ -4,10 +4,12 @@ import com.resadmin.res.dto.*;
 import com.resadmin.res.dto.request.*;
 import com.resadmin.res.dto.response.*;
 import com.resadmin.res.dto.response.StatsResponseDTO;
+import com.resadmin.res.entity.Delivery;
 import com.resadmin.res.entity.Order;
 import com.resadmin.res.entity.OrderItem;
 import com.resadmin.res.exception.ResourceNotFoundException;
 import com.resadmin.res.mapper.EntityMapper;
+import com.resadmin.res.service.DeliveryService;
 import com.resadmin.res.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -45,6 +47,9 @@ public class OrderController {
     
     @Autowired
     private OrderService orderService;
+    
+    @Autowired
+    private DeliveryService deliveryService;
     
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('KITCHEN_STAFF') or hasRole('DELIVERY_STAFF')")
@@ -164,6 +169,30 @@ public class OrderController {
         OrderDTO orderDTO = EntityMapper.toOrderDTO(savedOrder);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponseDTO.success("Order created successfully", orderDTO));
+    }
+    
+    @PostMapping("/{id}/assign-driver")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Assign delivery driver to order", description = "Creates a delivery for the specified order and assigns a driver")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Driver assigned successfully",
+                content = @Content(schema = @Schema(implementation = ApiResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "404", description = "Order or driver not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<ApiResponseDTO<DeliveryDTO>> assignDriverToOrder(
+            @Parameter(description = "Order ID") @PathVariable Long id,
+            @Parameter(description = "Driver assignment request") @Valid @RequestBody AssignDeliveryRequestDTO assignRequest) {
+        Delivery delivery = deliveryService.assignDelivery(
+            id,
+            assignRequest.getDriverId(),
+            assignRequest.getDeliveryAddress(),
+            assignRequest.getDeliveryNotes()
+        );
+        DeliveryDTO deliveryDTO = EntityMapper.toDeliveryDTO(delivery);
+        return ResponseEntity.ok(ApiResponseDTO.success("Driver assigned successfully", deliveryDTO));
     }
     
     @PutMapping("/{id}")
