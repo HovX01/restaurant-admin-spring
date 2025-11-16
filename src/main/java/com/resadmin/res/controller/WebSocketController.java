@@ -1,6 +1,7 @@
 package com.resadmin.res.controller;
 
 import com.resadmin.res.dto.websocket.WebSocketMessageDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -12,6 +13,7 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 
 @Controller
+@Slf4j
 public class WebSocketController {
 
     @Autowired
@@ -88,6 +90,7 @@ public class WebSocketController {
                 .data(data)
                 .timestamp(LocalDateTime.now())
                 .build();
+        log.debug("Websocket fired", message);
         
         messagingTemplate.convertAndSend("/topic/notifications", notification);
     }
@@ -117,7 +120,8 @@ public class WebSocketController {
                 .data(orderData)
                 .timestamp(LocalDateTime.now())
                 .build();
-        
+        log.debug("Websocket fired", message);
+
         messagingTemplate.convertAndSend("/topic/orders", message);
     }
 
