@@ -11,6 +11,7 @@ import com.resadmin.res.mapper.EntityMapper;
 import com.resadmin.res.repository.OrderItemRepository;
 import com.resadmin.res.repository.OrderRepository;
 import com.resadmin.res.repository.ProductRepository;
+import lombok.extern.slf4j.Slf4j;
 import com.resadmin.res.repository.DeliveryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
+@Slf4j
 public class OrderService {
     
     @Autowired
@@ -74,10 +76,10 @@ public class OrderService {
         
         for (OrderItem item : orderItems) {
             Product product = productRepository.findById(item.getProduct().getId())
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + item.getProduct().getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + item.getProduct().getId()));
             
             if (!product.getIsAvailable()) {
-                throw new RuntimeException("Product '" + product.getName() + "' is not available");
+                throw new ResourceNotFoundException("Product '" + product.getName() + "' is not available");
             }
             
             item.setProduct(product);
@@ -106,7 +108,9 @@ public class OrderService {
     
     public Order updateOrderStatus(Long orderId, Order.OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        log.debug("Update Order Status", order);
         
         // Validate status transition
         validateStatusTransition(order.getStatus(), newStatus);
@@ -127,7 +131,7 @@ public class OrderService {
     
     public Order updateOrder(Long id, Order orderDetails) {
         Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
         
         order.setCustomerDetails(orderDetails.getCustomerDetails());
         order.setOrderType(orderDetails.getOrderType());
@@ -137,7 +141,7 @@ public class OrderService {
     
     public void deleteOrder(Long id) {
         Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
         
         // Only allow deletion of pending or cancelled orders
         if (order.getStatus() != Order.OrderStatus.PENDING && 
@@ -257,7 +261,7 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", itemDTO.getProductId()));
             
             if (!product.getIsAvailable()) {
-                throw new RuntimeException("Product '" + product.getName() + "' is not available");
+                throw new ResourceNotFoundException("Product '" + product.getName() + "' is not available");
             }
             
             OrderItem orderItem = EntityMapper.toOrderItemEntity(itemDTO, order, product);
@@ -300,6 +304,8 @@ public class OrderService {
      public Order updateOrderFromDTO(Long id, CreateOrderRequestDTO orderDetails) {
          Order order = orderRepository.findById(id)
              .orElseThrow(() -> new ResourceNotFoundException("Order", "id", id));
+
+         log.debug("Updated Ordered",  order);
          
          order.setCustomerDetails(orderDetails.getCustomerDetails());
          order.setOrderType(orderDetails.getOrderType());

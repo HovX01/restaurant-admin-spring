@@ -2,9 +2,11 @@ package com.resadmin.res.service;
 
 import com.resadmin.res.entity.Category;
 import com.resadmin.res.entity.Product;
+import com.resadmin.res.exception.ResourceNotFoundException;
 import com.resadmin.res.repository.CategoryRepository;
 import com.resadmin.res.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -42,12 +44,12 @@ public class ProductService {
     
     public Product createProduct(Product product) {
         if (productRepository.existsByName(product.getName())) {
-            throw new RuntimeException("Product with name '" + product.getName() + "' already exists");
+            throw new DataIntegrityViolationException("Product with name '" + product.getName() + "' duplicate");
         }
         
         // Validate category exists
         Category category = categoryRepository.findById(product.getCategory().getId())
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + product.getCategory().getId()));
+            .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + product.getCategory().getId()));
         
         product.setCategory(category);
         return productRepository.save(product);
@@ -55,18 +57,18 @@ public class ProductService {
     
     public Product updateProduct(Long id, Product productDetails) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         
         // Check if name is being changed and if new name already exists
         if (!product.getName().equals(productDetails.getName()) && 
             productRepository.existsByName(productDetails.getName())) {
-            throw new RuntimeException("Product with name '" + productDetails.getName() + "' already exists");
+            throw new DataIntegrityViolationException("Product with name '" + productDetails.getName() + "' duplicate");
         }
         
         // Validate category exists if being changed
         if (!product.getCategory().getId().equals(productDetails.getCategory().getId())) {
             Category category = categoryRepository.findById(productDetails.getCategory().getId())
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + productDetails.getCategory().getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + productDetails.getCategory().getId()));
             product.setCategory(category);
         }
         
@@ -81,7 +83,7 @@ public class ProductService {
     
     public Product toggleAvailability(Long id) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         
         product.setIsAvailable(!product.getIsAvailable());
         return productRepository.save(product);
@@ -89,7 +91,7 @@ public class ProductService {
     
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         
         productRepository.delete(product);
     }

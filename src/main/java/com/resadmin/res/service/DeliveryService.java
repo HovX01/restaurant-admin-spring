@@ -3,10 +3,12 @@ package com.resadmin.res.service;
 import com.resadmin.res.entity.Delivery;
 import com.resadmin.res.entity.Order;
 import com.resadmin.res.entity.User;
+import com.resadmin.res.exception.ResourceNotFoundException;
 import com.resadmin.res.repository.DeliveryRepository;
 import com.resadmin.res.repository.OrderRepository;
 import com.resadmin.res.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -74,7 +76,7 @@ public class DeliveryService {
     public Delivery assignDelivery(Long orderId, Long driverId, String deliveryAddress, String deliveryNotes) {
         // Validate order exists and is ready for delivery
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
         
         if (order.getStatus() != Order.OrderStatus.READY_FOR_DELIVERY) {
             throw new RuntimeException("Order must be READY_FOR_DELIVERY to assign delivery. Current status: " + order.getStatus());
@@ -82,7 +84,7 @@ public class DeliveryService {
         
         // Validate driver exists and is delivery staff
         User driver = userRepository.findById(driverId)
-            .orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
+            .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + driverId));
         
         if (driver.getRole() != User.Role.DELIVERY_STAFF) {
             throw new RuntimeException("User must have DELIVERY_STAFF role to be assigned as driver");
@@ -95,7 +97,7 @@ public class DeliveryService {
         // Check if delivery already exists for this order
         Optional<Delivery> existingDelivery = deliveryRepository.findByOrderId(orderId);
         if (existingDelivery.isPresent()) {
-            throw new RuntimeException("Delivery already exists for order id: " + orderId);
+            throw new DataIntegrityViolationException("Delivery duplicate for order id: " + orderId);
         }
         
         // Create new delivery
@@ -120,7 +122,7 @@ public class DeliveryService {
     
     public Delivery updateDeliveryStatus(Long deliveryId, Delivery.DeliveryStatus newStatus) {
         Delivery delivery = deliveryRepository.findById(deliveryId)
-            .orElseThrow(() -> new RuntimeException("Delivery not found with id: " + deliveryId));
+            .orElseThrow(() -> new ResourceNotFoundException("Delivery not found with id: " + deliveryId));
         
         // Validate status transition
         validateStatusTransition(delivery.getStatus(), newStatus);
@@ -144,7 +146,7 @@ public class DeliveryService {
     
     public Delivery updateDelivery(Long id, String deliveryAddress, String deliveryNotes) {
         Delivery delivery = deliveryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Delivery not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Delivery not found with id: " + id));
         
         // Only allow updates if delivery is not yet delivered
         if (delivery.getStatus() == Delivery.DeliveryStatus.DELIVERED) {
@@ -159,7 +161,7 @@ public class DeliveryService {
     
     public Delivery reassignDriver(Long deliveryId, Long newDriverId) {
         Delivery delivery = deliveryRepository.findById(deliveryId)
-            .orElseThrow(() -> new RuntimeException("Delivery not found with id: " + deliveryId));
+            .orElseThrow(() -> new ResourceNotFoundException("Delivery not found with id: " + deliveryId));
         
         // Only allow reassignment if delivery is not yet out for delivery
         if (delivery.getStatus() != Delivery.DeliveryStatus.ASSIGNED) {
@@ -168,7 +170,7 @@ public class DeliveryService {
         
         // Validate new driver
         User newDriver = userRepository.findById(newDriverId)
-            .orElseThrow(() -> new RuntimeException("Driver not found with id: " + newDriverId));
+            .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + newDriverId));
         
         if (newDriver.getRole() != User.Role.DELIVERY_STAFF) {
             throw new RuntimeException("User must have DELIVERY_STAFF role to be assigned as driver");
@@ -190,7 +192,7 @@ public class DeliveryService {
     
     public void cancelDelivery(Long deliveryId) {
         Delivery delivery = deliveryRepository.findById(deliveryId)
-            .orElseThrow(() -> new RuntimeException("Delivery not found with id: " + deliveryId));
+            .orElseThrow(() -> new ResourceNotFoundException("Delivery not found with id: " + deliveryId));
         
         if (delivery.getStatus() == Delivery.DeliveryStatus.DELIVERED) {
             throw new RuntimeException("Cannot cancel delivered delivery");
