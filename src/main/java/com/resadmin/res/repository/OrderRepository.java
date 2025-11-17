@@ -36,7 +36,10 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     @Query("SELECT o FROM Order o WHERE o.status = 'CONFIRMED' OR o.status = 'PREPARING' ORDER BY o.createdAt ASC")
     List<Order> findKitchenOrders();
     
-    @Query("SELECT o FROM Order o WHERE o.status = 'READY_FOR_DELIVERY' ORDER BY o.createdAt ASC")
+    @Query("SELECT o FROM Order o WHERE o.orderType = 'DELIVERY' AND " +
+           "((o.status = 'READY_FOR_DELIVERY' OR o.status = 'OUT_FOR_DELIVERY') OR " +
+           "(o.status = 'COMPLETED' AND CAST(o.createdAt AS date) = CURRENT_DATE)) " +
+           "ORDER BY o.createdAt ASC")
     List<Order> findOrdersReadyForDelivery();
     
     @Query("SELECT o FROM Order o WHERE o.orderType = 'DELIVERY' AND o.status = 'OUT_FOR_DELIVERY'")

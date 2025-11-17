@@ -5,12 +5,14 @@ import com.resadmin.res.dto.request.CreateOrderItemRequestDTO;
 import com.resadmin.res.entity.Order;
 import com.resadmin.res.entity.OrderItem;
 import com.resadmin.res.entity.Product;
+import com.resadmin.res.entity.Delivery;
 import com.resadmin.res.exception.ResourceNotFoundException;
 import com.resadmin.res.mapper.EntityMapper;
 import com.resadmin.res.repository.OrderItemRepository;
 import com.resadmin.res.repository.OrderRepository;
 import com.resadmin.res.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
+import com.resadmin.res.repository.DeliveryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +39,9 @@ public class OrderService {
     
     @Autowired
     private ProductRepository productRepository;
+    
+    @Autowired
+    private DeliveryRepository deliveryRepository;
     
     @Autowired
     private WebSocketService webSocketService;
@@ -276,6 +281,21 @@ public class OrderService {
         for (OrderItem item : orderItems) {
             item.setOrder(savedOrder);
             orderItemRepository.save(item);
+        }
+        
+        // Create Delivery record if order type is DELIVERY
+        if (savedOrder.getOrderType() == Order.OrderType.DELIVERY && 
+            createOrderRequest.getCustomerAddress() != null && 
+            !createOrderRequest.getCustomerAddress().isBlank()) {
+            
+            Delivery delivery = new Delivery();
+            delivery.setOrder(savedOrder);
+            delivery.setDeliveryAddress(createOrderRequest.getCustomerAddress());
+            delivery.setDeliveryNotes(createOrderRequest.getNotes());
+            delivery.setLatitude(createOrderRequest.getLatitude());
+            delivery.setLongitude(createOrderRequest.getLongitude());
+            delivery.setStatus(Delivery.DeliveryStatus.PENDING);
+            deliveryRepository.save(delivery);
         }
         
         return savedOrder;

@@ -20,7 +20,7 @@ public class Delivery {
     private Order order;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "driver_id")
     private User driver;
     
     @Enumerated(EnumType.STRING)
@@ -39,6 +39,12 @@ public class Delivery {
     
     @Column(name = "delivery_notes", length = 1000)
     private String deliveryNotes;
+    
+    @Column(name = "latitude")
+    private Double latitude;
+    
+    @Column(name = "longitude")
+    private Double longitude;
     
     // Enum for delivery status
     public enum DeliveryStatus {
@@ -143,6 +149,22 @@ public class Delivery {
     
     public void setDeliveryNotes(String deliveryNotes) {
         this.deliveryNotes = deliveryNotes;
+    }
+    
+    public Double getLatitude() {
+        return latitude;
+    }
+    
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+    
+    public Double getLongitude() {
+        return longitude;
+    }
+    
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
     
     @Override
