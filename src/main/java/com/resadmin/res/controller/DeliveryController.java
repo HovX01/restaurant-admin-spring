@@ -5,6 +5,7 @@ import com.resadmin.res.dto.request.ReassignDriverRequestDTO;
 import com.resadmin.res.dto.request.UpdateDeliveryRequestDTO;
 import com.resadmin.res.dto.request.UpdateDeliveryStatusRequestDTO;
 import com.resadmin.res.dto.DeliveryDTO;
+import com.resadmin.res.dto.UserDTO;
 import com.resadmin.res.dto.response.ApiResponseDTO;
 import com.resadmin.res.dto.response.PagedResponseDTO;
 import com.resadmin.res.dto.response.StatsResponseDTO;
@@ -41,9 +42,10 @@ public class DeliveryController {
     private DeliveryService deliveryService;
     
     @GetMapping
-    public ResponseEntity<List<Delivery>> getAllDeliveries() {
+    public ResponseEntity<ApiResponseDTO<List<DeliveryDTO>>> getAllDeliveries() {
         List<Delivery> deliveries = deliveryService.getAllDeliveries();
-        return ResponseEntity.ok(deliveries);
+        List<DeliveryDTO> deliveryDTOs = EntityMapper.toDeliveryDTOList(deliveries);
+        return ResponseEntity.ok(ApiResponseDTO.success("Deliveries retrieved successfully", deliveryDTOs));
     }
     
     @GetMapping("/my")
@@ -90,33 +92,38 @@ public class DeliveryController {
     }
     
     @GetMapping("/driver/{driverId}")
-    public ResponseEntity<List<Delivery>> getDeliveriesByDriver(@PathVariable Long driverId) {
+    public ResponseEntity<ApiResponseDTO<List<DeliveryDTO>>> getDeliveriesByDriver(@PathVariable Long driverId) {
         List<Delivery> deliveries = deliveryService.getDeliveriesByDriver(driverId);
-        return ResponseEntity.ok(deliveries);
+        List<DeliveryDTO> deliveryDTOs = EntityMapper.toDeliveryDTOList(deliveries);
+        return ResponseEntity.ok(ApiResponseDTO.success("Deliveries retrieved successfully", deliveryDTOs));
     }
     
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Delivery>> getDeliveriesByStatus(@PathVariable Delivery.DeliveryStatus status) {
+    public ResponseEntity<ApiResponseDTO<List<DeliveryDTO>>> getDeliveriesByStatus(@PathVariable Delivery.DeliveryStatus status) {
         List<Delivery> deliveries = deliveryService.getDeliveriesByStatus(status);
-        return ResponseEntity.ok(deliveries);
+        List<DeliveryDTO> deliveryDTOs = EntityMapper.toDeliveryDTOList(deliveries);
+        return ResponseEntity.ok(ApiResponseDTO.success("Deliveries retrieved successfully", deliveryDTOs));
     }
     
     @GetMapping("/pending")
-    public ResponseEntity<List<Delivery>> getPendingDeliveries() {
+    public ResponseEntity<ApiResponseDTO<List<DeliveryDTO>>> getPendingDeliveries() {
         List<Delivery> deliveries = deliveryService.getPendingDeliveries();
-        return ResponseEntity.ok(deliveries);
+        List<DeliveryDTO> deliveryDTOs = EntityMapper.toDeliveryDTOList(deliveries);
+        return ResponseEntity.ok(ApiResponseDTO.success("Pending deliveries retrieved successfully", deliveryDTOs));
     }
     
     @GetMapping("/active")
-    public ResponseEntity<List<Delivery>> getActiveDeliveries() {
+    public ResponseEntity<ApiResponseDTO<List<DeliveryDTO>>> getActiveDeliveries() {
         List<Delivery> deliveries = deliveryService.getActiveDeliveries();
-        return ResponseEntity.ok(deliveries);
+        List<DeliveryDTO> deliveryDTOs = EntityMapper.toDeliveryDTOList(deliveries);
+        return ResponseEntity.ok(ApiResponseDTO.success("Active deliveries retrieved successfully", deliveryDTOs));
     }
     
     @GetMapping("/today")
-    public ResponseEntity<List<Delivery>> getTodaysDeliveries() {
+    public ResponseEntity<ApiResponseDTO<List<DeliveryDTO>>> getTodaysDeliveries() {
         List<Delivery> deliveries = deliveryService.getTodaysDeliveries();
-        return ResponseEntity.ok(deliveries);
+        List<DeliveryDTO> deliveryDTOs = EntityMapper.toDeliveryDTOList(deliveries);
+        return ResponseEntity.ok(ApiResponseDTO.success("Today's deliveries retrieved successfully", deliveryDTOs));
     }
     
     @PostMapping("/assign")
@@ -168,18 +175,20 @@ public class DeliveryController {
     
     @GetMapping("/date-range")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<List<Delivery>> getDeliveriesByDateRange(
+    public ResponseEntity<ApiResponseDTO<List<DeliveryDTO>>> getDeliveriesByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         List<Delivery> deliveries = deliveryService.getDeliveriesByDateRange(startDate, endDate);
-        return ResponseEntity.ok(deliveries);
+        List<DeliveryDTO> deliveryDTOs = EntityMapper.toDeliveryDTOList(deliveries);
+        return ResponseEntity.ok(ApiResponseDTO.success("Deliveries retrieved successfully", deliveryDTOs));
     }
     
     @GetMapping("/drivers/available")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<List<User>> getAvailableDrivers() {
+    public ResponseEntity<ApiResponseDTO<List<UserDTO>>> getAvailableDrivers() {
         List<User> drivers = deliveryService.getAvailableDrivers();
-        return ResponseEntity.ok(drivers);
+        List<UserDTO> driverDTOs = EntityMapper.toUserDTOList(drivers);
+        return ResponseEntity.ok(ApiResponseDTO.success("Available drivers retrieved successfully", driverDTOs));
     }
     
     @GetMapping("/stats")
